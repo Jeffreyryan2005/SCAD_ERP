@@ -8,6 +8,24 @@
   min-height: 100vh;
 }
 
+/* ---- LOGIN PAGE LAYOUT ---- */
+.login-page {
+  min-height: 100vh;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1.5rem !important;
+  background: var(--color-bg) !important;
+  box-sizing: border-box;
+}
+
+.login-theme-toggle {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+}
+
 /* Main Content */
 .main-content {
   padding: 1.5rem 2rem;
