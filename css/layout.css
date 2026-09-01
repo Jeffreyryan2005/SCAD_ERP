@@ -1,0 +1,291 @@
+/* =============================================
+   SCAD Attendance ERP — Mobile-First Layout & Responsiveness
+   ============================================= */
+
+/* Base App Layout */
+.app-layout {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Main Content */
+.main-content {
+  padding: 1.5rem 2rem;
+  margin-top: var(--header-height, 64px);
+  margin-left: var(--sidebar-width, 260px);
+  min-height: calc(100vh - var(--header-height, 64px));
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.2s ease;
+}
+
+/* Stats Grid Default */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Charts Grid Default */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Sidebar Overlay for Mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Table Responsive Wrappers */
+.table-responsive,
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* =============================================
+   RESPONSIVE BREAKPOINTS (MOBILE OPTIMIZATION)
+   ============================================= */
+
+/* Tablet (< 992px) */
+@media (max-width: 992px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .table-toolbar > * {
+    width: 100% !important;
+  }
+}
+
+/* Tablet Portrait & Mobile (< 768px) */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0 !important;
+    padding: 1rem !important;
+    margin-top: 60px !important;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 270px;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .header {
+    left: 0 !important;
+    height: 60px !important;
+    padding: 0 1rem !important;
+  }
+
+  .sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+  }
+
+  .header__date {
+    display: none !important;
+  }
+
+  .header__title {
+    font-size: 1.1rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .header__user-name {
+    display: none !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  .stat-card {
+    padding: 0.85rem !important;
+    gap: 0.6rem !important;
+  }
+
+  .stat-card__value {
+    font-size: 1.35rem !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Modals on Mobile */
+  .modal-card,
+  .modal__card,
+  .modal__content {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px auto !important;
+    border-radius: 12px !important;
+  }
+
+  /* Form Inputs on Mobile (16px to prevent iOS auto-zoom) */
+  .form-input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Attendance table padding */
+  .attendance-table th,
+  .attendance-table td {
+    padding: 8px 10px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Touch-friendly buttons in attendance group */
+  .attendance-btn-group {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .attendance-btn-group button {
+    flex: 1;
+    min-height: 38px;
+    padding: 6px 8px !important;
+    font-size: 0.82rem !important;
+    border-radius: 6px !important;
+    font-weight: 600;
+  }
+
+  /* Profile Card on Mobile */
+  .profile-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 1.25rem !important;
+    gap: 1rem !important;
+  }
+
+  .profile-avatar {
+    width: 70px !important;
+    height: 70px !important;
+    font-size: 2rem !important;
+  }
+}
+
+/* Small Smartphone (< 480px) */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem !important;
+  }
+
+  .header {
+    padding: 0 0.75rem !important;
+  }
+
+  .header__title {
+    max-width: 130px;
+    font-size: 1rem !important;
+  }
+
+  #logout-btn {
+    padding: 6px 8px !important;
+    font-size: 0 !important; /* Hide text, show only SVG */
+  }
+
+  #logout-btn svg {
+    margin-right: 0 !important;
+    width: 16px;
+    height: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  .stat-card__icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+  }
+
+  .stat-card__label {
+    font-size: 0.72rem !important;
+  }
+
+  .stat-card__value {
+    font-size: 1.2rem !important;
+  }
+
+  .card {
+    border-radius: 8px !important;
+  }
+
+  .card__header {
+    padding: 0.85rem !important;
+  }
+
+  .card__body {
+    padding: 0.85rem !important;
+  }
+
+  /* Verification Banner on Mobile */
+  .verification-banner {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    padding: 1rem !important;
+  }
+
+  .verification-banner button {
+    width: 100% !important;
+  }
+}

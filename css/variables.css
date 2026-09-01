@@ -1,0 +1,182 @@
+/* =============================================
+   SCAD Attendance Dashboard — Design Tokens
+   Light & Dark theme variables
+   ============================================= */
+
+/* Light Theme (Default) */
+[data-theme="light"] {
+  /* Primary — SCAD College Green */
+  --color-primary: #1B5E20;
+  --color-primary-hover: #2E7D32;
+  --color-primary-light: #E8F5E9;
+
+  /* Accent — Gold */
+  --color-accent: #C8962E;
+  --color-accent-light: #FFF8E1;
+
+  /* Backgrounds */
+  --color-bg: #F4F6F9;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F9FAFB;
+
+  /* Text */
+  --color-text: #212121;
+  --color-text-secondary: #616161;
+  --color-text-muted: #9E9E9E;
+
+  /* Borders */
+  --color-border: #E0E0E0;
+  --color-border-light: #F0F0F0;
+
+  /* Status Colors */
+  --color-present: #2E7D32;
+  --color-present-bg: #E8F5E9;
+  --color-late: #E65100;
+  --color-late-bg: #FFF3E0;
+  --color-absent: #C62828;
+  --color-absent-bg: #FFEBEE;
+  --color-checkout: #1565C0;
+  --color-checkout-bg: #E3F2FD;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* Sidebar */
+  --sidebar-bg: #1B5E20;
+  --sidebar-text: #FFFFFF;
+  --sidebar-text-muted: rgba(255, 255, 255, 0.7);
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-active: rgba(255, 255, 255, 0.2);
+
+  /* Scrollbar */
+  --scrollbar-track: #F0F0F0;
+  --scrollbar-thumb: #C0C0C0;
+  --scrollbar-thumb-hover: #A0A0A0;
+
+  /* Modal */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+
+  /* Table */
+  --table-header-bg: #F5F7FA;
+  --table-row-alt: #FAFBFC;
+  --table-row-hover: #F0F4F8;
+
+  /* Toast */
+  --toast-success-bg: #E8F5E9;
+  --toast-success-border: #2E7D32;
+  --toast-error-bg: #FFEBEE;
+  --toast-error-border: #C62828;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --color-primary: #4CAF50;
+  --color-primary-hover: #66BB6A;
+  --color-primary-light: #1B3A1D;
+
+  --color-accent: #FFD54F;
+  --color-accent-light: #3D3520;
+
+  --color-bg: #111827;
+  --color-surface: #1F2937;
+  --color-surface-hover: #283548;
+
+  --color-text: #E5E7EB;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
+
+  --color-border: #374151;
+  --color-border-light: #2D3748;
+
+  --color-present: #66BB6A;
+  --color-present-bg: #1B3A1D;
+  --color-late: #FFA726;
+  --color-late-bg: #3D2E10;
+  --color-absent: #EF5350;
+  --color-absent-bg: #3D1515;
+  --color-checkout: #42A5F5;
+  --color-checkout-bg: #152840;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  --sidebar-bg: #0F1A0F;
+  --sidebar-text: #E5E7EB;
+  --sidebar-text-muted: rgba(229, 231, 235, 0.6);
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: rgba(76, 175, 80, 0.25);
+
+  --scrollbar-track: #1F2937;
+  --scrollbar-thumb: #4B5563;
+  --scrollbar-thumb-hover: #6B7280;
+
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+
+  --table-header-bg: #1a2332;
+  --table-row-alt: #1a2332;
+  --table-row-hover: #243040;
+
+  --toast-success-bg: #1B3A1D;
+  --toast-success-border: #4CAF50;
+  --toast-error-bg: #3D1515;
+  --toast-error-border: #EF5350;
+}
+
+/* =============================================
+   Non-theme tokens (static across themes)
+   ============================================= */
+:root {
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.8125rem;  /* 13px */
+  --font-size-base: 0.875rem; /* 14px */
+  --font-size-md: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.5rem;     /* 24px */
+  --font-size-2xl: 1.875rem;  /* 30px */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-base: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Layout */
+  --sidebar-width: 250px;
+  --sidebar-collapsed: 0px;
+  --header-height: 60px;
+
+  /* Z-index */
+  --z-sidebar: 100;
+  --z-header: 90;
+  --z-overlay: 999;
+  --z-modal: 1000;
+  --z-toast: 1100;
+}

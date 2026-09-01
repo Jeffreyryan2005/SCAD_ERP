@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SCAD College of Engineering & Technology — Biometric Attendance Management System">
+    <title>SCAD Attendance System — Login</title>
+    <link rel="stylesheet" href="css/variables.css?v=22">
+    <link rel="stylesheet" href="css/base.css?v=22">
+    <link rel="stylesheet" href="css/components.css?v=22">
+    <link rel="stylesheet" href="css/layout.css?v=22">
+    <style>
+        .force-pwd-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            align-items: center; justify-content: center;
+        }
+        .force-pwd-overlay.active { display: flex; }
+        .force-pwd-card {
+            background: var(--color-surface, #fff);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .force-pwd-card h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+            color: var(--color-text, #333);
+        }
+        .force-pwd-card p {
+            color: var(--color-text-muted, #666);
+            font-size: 0.9rem;
+            margin: 0 0 1.5rem 0;
+        }
+        .pwd-strength {
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            margin: 0.5rem 0 0.25rem 0;
+            overflow: hidden;
+        }
+        .pwd-strength-bar {
+            height: 100%;
+            border-radius: 3px;
+            width: 0;
+            transition: width 0.3s, background 0.3s;
+        }
+        .pwd-strength-text {
+            font-size: 0.75rem;
+            color: var(--color-text-muted, #888);
+            margin-bottom: 1rem;
+        }
+        .pwd-rules {
+            font-size: 0.8rem;
+            color: var(--color-text-muted, #888);
+            margin: 0.5rem 0 1rem 0;
+            line-height: 1.6;
+        }
+        .pwd-rules span { display: block; }
+        .pwd-rules span.pass { color: #2E7D32; }
+        .pwd-rules span.fail { color: #C62828; }
+        .force-pwd-error {
+            color: #C62828;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+            display: none;
+        }
+        .lockout-msg {
+            color: #C62828;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="login-page" data-theme="light">
+
+    <button id="theme-toggle-btn" class="theme-toggle login-theme-toggle" aria-label="Switch to dark mode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+
+    <div class="login-card">
+        <img src="assets/logo.png" alt="SCAD College of Engineering & Technology" class="login-card__logo">
+        <h1>Attendance Management System</h1>
+        <p class="login-card__subtitle">SCAD College of Engineering &amp; Technology</p>
+
+        <form id="login-form" autocomplete="off">
+            <div class="form-group">
+                <label class="form-label" for="login-username">Username / Reg No</label>
+                <input type="text" id="login-username" class="form-input form-input--full" placeholder="Enter username" autofocus>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="login-password">Password</label>
+                <input type="password" id="login-password" class="form-input form-input--full" placeholder="Enter password">
+            </div>
+            <div id="login-error" class="login-error"></div>
+            <button id="login-btn" type="submit" class="btn btn--primary btn--full" style="padding:12px">Login</button>
+        </form>
+
+        <div class="login-card__demo">
+            <h4>Demo Credentials</h4>
+            <table class="demo-table">
+                <thead>
+                    <tr><th>Role</th><th>Username</th><th>Password</th></tr>
+                </thead>
+                <tbody>
+                    <tr onclick="fillDemo('admin', 'admin123')" style="cursor:pointer"><td>Principal</td><td>admin</td><td>admin123</td></tr>
+                    <tr onclick="fillDemo('hod_cse', 'hod123')" style="cursor:pointer"><td>HOD (CSE)</td><td>hod_cse</td><td>hod123</td></tr>
+                    <tr onclick="fillDemo('hod_sh', 'hod123')" style="cursor:pointer"><td>HOD (S&H)</td><td>hod_sh</td><td>hod123</td></tr>
+                    <tr onclick="fillDemo('faculty_cse_1', 'faculty123')" style="cursor:pointer"><td>Faculty (CSE)</td><td>faculty_cse_1</td><td>faculty123</td></tr>
+                    <tr onclick="fillDemo('faculty_math', 'faculty123')" style="cursor:pointer"><td>Faculty (Math)</td><td>faculty_math</td><td>faculty123</td></tr>
+                    <tr onclick="fillDemo('92141104A001', '92141104A001')" style="cursor:pointer"><td>Student</td><td>92141104A001</td><td>92141104A001</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="force-pwd-overlay" class="force-pwd-overlay">
+        <div class="force-pwd-card">
+            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Set Your New Password</h2>
+            <p>This is your first login or your password was reset. You must set a new password to continue.</p>
+            <form id="force-pwd-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="force-new-pwd">New Password</label>
+                    <input type="password" id="force-new-pwd" class="form-input form-input--full" placeholder="Enter new password" required>
+                </div>
+                <div class="pwd-strength"><div id="force-pwd-strength-bar" class="pwd-strength-bar"></div></div>
+                <div id="force-pwd-strength-text" class="pwd-strength-text"></div>
+                <div id="force-pwd-rules" class="pwd-rules"></div>
+                <div class="form-group">
+                    <label class="form-label" for="force-confirm-pwd">Confirm Password</label>
+                    <input type="password" id="force-confirm-pwd" class="form-input form-input--full" placeholder="Re-enter new password" required>
+                </div>
+                <div style="background:#E3F2FD; padding:1rem; border-radius:8px; border:1px solid #90CAF9; margin-bottom:1rem;">
+                    <label class="form-label" style="color:#1565C0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Set a Security Question</label>
+                    <p style="font-size:0.85rem; color:#37474F; margin:0 0 0.5rem 0;">This protects your account even if someone steals your password.</p>
+                    <select id="force-security-q" class="form-input form-input--full" style="margin-bottom:0.5rem;" required>
+                        <option value="">-- Select a question --</option>
+                    </select>
+                    <input type="text" id="force-security-a" class="form-input form-input--full" placeholder="Your answer (case-insensitive)" required>
+                </div>
+                <div id="force-pwd-error" class="force-pwd-error"></div>
+                <button type="submit" class="btn btn--primary btn--full" style="padding:12px; margin-top:0.5rem">Set Password & Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/timetable.js?v=22"></script>
+    <script src="js/mock-data.js?v=22"></script>
+    <script src="js/theme.js?v=22"></script>
+    <script src="js/auth.js?v=22"></script>
+    <script>
+        function fillDemo(user, pass) {
+            document.getElementById('login-username').value = user;
+            document.getElementById('login-password').value = pass;
+        }
+
+        function updatePasswordRules(password, username) {
+            var rulesEl = document.getElementById('force-pwd-rules');
+            var barEl = document.getElementById('force-pwd-strength-bar');
+            var textEl = document.getElementById('force-pwd-strength-text');
+
+            var checks = [
+                { test: password.length >= 8, label: '8+ characters' },
+                { test: /[A-Z]/.test(password), label: 'Uppercase letter' },
+                { test: /[a-z]/.test(password), label: 'Lowercase letter' },
+                { test: /[0-9]/.test(password), label: 'A digit (0-9)' },
+                { test: !username || password.toLowerCase() !== username.toLowerCase(), label: 'Not same as username' }
+            ];
+
+            var passed = 0;
+            var html = '';
+            checks.forEach(function(c) {
+                if (c.test) {
+                    passed++;
+                    html += '<span class="pass"> ' + c.label + '</span>';
+                } else {
+                    html += '<span class="fail"> ' + c.label + '</span>';
+                }
+            });
+            rulesEl.innerHTML = html;
+
+            var pct = (passed / checks.length) * 100;
+            barEl.style.width = pct + '%';
+            if (pct <= 40) { barEl.style.background = '#C62828'; textEl.textContent = 'Weak'; }
+            else if (pct <= 80) { barEl.style.background = '#F57C00'; textEl.textContent = 'Medium'; }
+            else { barEl.style.background = '#2E7D32'; textEl.textContent = 'Strong'; }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            Theme.init();
+
+            var currentUser = Auth.getCurrentUser();
+            if (currentUser) {
+                if (currentUser.mustChangePassword) {
+                    document.getElementById('force-pwd-overlay').classList.add('active');
+                    document.querySelector('.login-card').style.display = 'none';
+                } else {
+                    window.location.href = Auth.getRedirectForRole(currentUser.role);
+                    return;
+                }
+            }
+
+            document.getElementById('theme-toggle-btn').addEventListener('click', function () {
+                Theme.toggle();
+            });
+
+            document.getElementById('login-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                var username = document.getElementById('login-username').value.trim();
+                var password = document.getElementById('login-password').value;
+                var errEl = document.getElementById('login-error');
+                var loginBtn = document.getElementById('login-btn');
+                
+                if (!username || !password) {
+                    errEl.textContent = 'Please enter both username and password';
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                var result = Auth.login(username, password);
+
+                if (result.user) {
+                    if (result.user.mustChangePassword) {
+                        document.getElementById('force-pwd-overlay').classList.add('active');
+                        document.querySelector('.login-card').style.display = 'none';
+                    } else {
+                        window.location.href = Auth.getRedirectForRole(result.user.role);
+                    }
+                } else {
+                    errEl.textContent = result.error || 'Invalid username or password';
+                    errEl.style.display = 'block';
+                    
+                    if (result.locked) {
+                        loginBtn.disabled = true;
+                        loginBtn.textContent = 'Locked (' + result.lockoutRemaining + 's)';
+                        errEl.classList.add('lockout-msg');
+                        var countdown = result.lockoutRemaining;
+                        var interval = setInterval(function() {
+                            countdown--;
+                            if (countdown <= 0) {
+                                clearInterval(interval);
+                                loginBtn.disabled = false;
+                                loginBtn.textContent = 'Login';
+                                errEl.style.display = 'none';
+                                errEl.classList.remove('lockout-msg');
+                            } else {
+                                loginBtn.textContent = 'Locked (' + countdown + 's)';
+                            }
+                        }, 1000);
+                    }
+
+                    var card = document.querySelector('.login-card');
+                    card.style.animation = 'none';
+                    card.offsetHeight;
+                    card.style.animation = 'shake 0.4s ease';
+                }
+            });
+
+            // Populate security questions
+            var secQSelect = document.getElementById('force-security-q');
+            if (window.Auth && window.Auth.SECURITY_QUESTIONS) {
+                window.Auth.SECURITY_QUESTIONS.forEach(function(q, i) {
+                    var opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = q;
+                    secQSelect.appendChild(opt);
+                });
+            }
+
+            document.getElementById('force-new-pwd').addEventListener('input', function() {
+                var user = Auth.getCurrentUser();
+                updatePasswordRules(this.value, user ? user.username : '');
+            });
+
+            document.getElementById('force-pwd-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var newPwd = document.getElementById('force-new-pwd').value;
+                var confirmPwd = document.getElementById('force-confirm-pwd').value;
+                var secQ = document.getElementById('force-security-q').value;
+                var secA = document.getElementById('force-security-a').value;
+                var errEl = document.getElementById('force-pwd-error');
+
+                if (newPwd !== confirmPwd) {
+                    errEl.textContent = 'Passwords do not match';
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                if (secQ === '' || !secA.trim()) {
+                    errEl.textContent = 'Please set a security question and answer';
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                var user = Auth.getCurrentUser();
+                var result = Auth.forcePasswordChange(newPwd);
+                if (result.success) {
+                    Auth.setSecurityQuestion(user.username, parseInt(secQ, 10), secA);
+                    user = Auth.getCurrentUser();
+                    window.location.href = Auth.getRedirectForRole(user.role);
+                } else {
+                    errEl.textContent = result.error;
+                    errEl.style.display = 'block';
+                }
+            });
+        });
+    </script>
+    <script src="js/profile-modal.js?v=22"></script>
+</body>
+</html>

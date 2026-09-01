@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - SCAD</title>
+    <link rel="stylesheet" href="css/variables.css?v=22">
+    <link rel="stylesheet" href="css/base.css?v=22">
+    <link rel="stylesheet" href="css/components.css?v=22">
+    <link rel="stylesheet" href="css/layout.css?v=22">
+    <style>
+        .profile-card {
+            display: flex; gap: 2rem; background: var(--color-surface);
+            padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 2rem; align-items: center; flex-wrap: wrap;
+        }
+        .profile-avatar {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: var(--color-primary); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; font-weight: bold; flex-shrink: 0;
+        }
+        .profile-info { flex: 1; }
+        .profile-info h2 { margin: 0 0 0.5rem 0; }
+        .profile-info p { margin: 0 0 0.25rem 0; color: var(--color-text-muted); font-size: 0.95rem; }
+        .gate-status {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            font-weight: 600; font-size: 0.9rem; margin-top: 0.5rem;
+        }
+        .dashboard-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;
+        }
+        .dashboard-card {
+            background: var(--color-surface); padding: 1.5rem;
+            border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
+        }
+        .dashboard-card h3 { margin: 0 0 1.25rem 0; font-size: 1.1rem; display: flex; align-items: center; }
+        .schedule-timeline { display: flex; flex-direction: column; gap: 0.5rem; }
+        .timeline-item {
+            display: flex; gap: 1rem; align-items: flex-start;
+            padding: 0.875rem 1rem; border-radius: 8px; background: var(--color-bg, #f8f9fa);
+            border: 1px solid var(--color-border, #e8e8e8);
+        }
+        .timeline-time { font-weight: 600; min-width: 90px; font-size: 0.85rem; flex-shrink: 0; color: var(--color-text-muted); padding-top: 2px; }
+        .timeline-content { flex: 1; min-width: 0; }
+        .timeline-content h4 { margin: 0; font-size: 0.95rem; }
+        .timeline-content p { margin: 0; font-size: 0.85rem; color: var(--color-text-muted); }
+        .timeline-status {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+        }
+        .subject-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+        .subject-row {
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .subject-row .name { width: 100px; font-weight: 500; font-size: 0.9rem; }
+        .subject-row .bar-container {
+            flex: 1; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden;
+        }
+        .subject-row .bar { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+        .subject-row .pct { width: 45px; text-align: right; font-weight: 600; font-size: 0.9rem; }
+        .overall-badge {
+            text-align: right; flex-shrink: 0; min-width: 120px;
+        }
+        .overall-badge .pct { font-size: 2.5rem; font-weight: 700; color: var(--color-primary); margin: 0; }
+        .overall-badge .label { color: var(--color-text-muted); font-size: 0.9rem; }
+
+        #calendar-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+        .calendar-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; font-size: 0.85rem; cursor: default;
+        }
+        .calendar-cell.present { background: #E8F5E9; color: #2E7D32; font-weight: 600; }
+        .calendar-cell.absent { background: #FFEBEE; color: #C62828; font-weight: 600; }
+        .calendar-cell.today { box-shadow: 0 0 0 2px var(--color-primary); }
+
+
+        .subject-card {
+            background: var(--color-bg, #f8f9fa); padding: 1rem; border-radius: 8px;
+            border: 1px solid var(--color-border, #e0e0e0);
+        }
+        .subject-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .subject-name { font-weight: 600; font-size: 0.95rem; }
+        .subject-percentage { font-weight: 700; font-size: 1rem; }
+        .progress-bar-bg {
+            height: 8px; background: #e0e0e0; border-radius: 4px;
+            overflow: hidden; margin-bottom: 0.5rem;
+        }
+        .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+        .subject-details {
+            display: flex; justify-content: space-between;
+            font-size: 0.85rem; color: var(--color-text-muted);
+        }
+        .profile-details {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .timeline-item.break {
+            background: var(--color-bg, #f8f9fa); opacity: 0.7; font-style: italic;
+        }
+        .timeline-item.present { border-left: 3px solid #4CAF50; }
+        .timeline-item.absent { border-left: 3px solid #F44336; }
+        .timeline-item.current { border-left: 3px solid var(--color-primary); background: rgba(27, 94, 32, 0.06); }
+        .badge.present, .badge.badge--success { background: rgba(76, 175, 80, 0.15); color: #2E7D32; }
+        .badge.absent, .badge.badge--danger { background: rgba(244, 67, 54, 0.15); color: #C62828; }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .profile-card { flex-direction: column; text-align: center; }
+            .overall-badge { text-align: center; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="layout">
+        <!-- Student sidebar (custom, not injected by update_layout.py) -->
+            <!-- ========== SIDEBAR ========== -->
+        <!-- ========== SIDEBAR ========== -->
+        <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar__logo">
+            <img src="assets/logo.png" alt="SCAD Logo" onerror="this.style.display='none'">
+            <div class="sidebar__logo-text">
+                <h2>SCAD</h2>
+                <small>ERP System</small>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <a href="dashboard.html" class="sidebar__nav-item admin-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </span> Dashboard
+            </a>
+            <a href="hod.html" class="sidebar__nav-item hod-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
+                </span> Dept Dashboard
+            </a>
+            <a href="student.html" class="sidebar__nav-item student-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                </span> My Dashboard
+            </a>
+            <a href="faculty.html" class="sidebar__nav-item faculty-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                </span> My Classes
+            </a>
+            <a href="reports.html" class="sidebar__nav-item admin-only hod-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </span> Reports
+            </a>
+            <a href="admin-timetable.html" class="sidebar__nav-item admin-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </span> Timetable
+            </a>
+            <a href="staff.html" class="sidebar__nav-item admin-only hod-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </span> Staff
+            </a>
+            <a href="students.html" class="sidebar__nav-item admin-only hod-only">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                </span> Students
+            </a>
+            <a href="notifications.html" class="sidebar__nav-item">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </span> Notifications
+            </a>
+            <a href="change-password.html" class="sidebar__nav-item">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                </span> Change Password
+            </a>
+            <a href="#" class="sidebar__nav-item" id="sidebar-logout-btn" style="margin-top: 2rem; color: #ff5252;">
+                <span class="sidebar__nav-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </span> Logout
+            </a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <div class="sidebar__user">
+                <div class="sidebar__user-avatar" id="sidebar-avatar">U</div>
+                <div class="sidebar__user-info">
+                    <div class="sidebar__user-name" id="sidebar-user-name">User</div>
+                    <div class="sidebar__user-role" id="sidebar-user-role">Role</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+        <main class="main-content">
+                <!-- ========== HEADER ========== -->
+        <!-- ========== HEADER ========== -->
+        <!-- ========== HEADER ========== -->
+        <!-- ========== HEADER ========== -->
+        <!-- ========== HEADER ========== -->
+    <header id="header" class="header">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <h1 class="header__title" id="dynamic-header-title">SCAD Attendance System</h1>
+        <div class="header__spacer"></div>
+        <span id="header-date" class="header__date"></span>
+
+        <div class="header__actions">
+            <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <div class="header__user">
+                <span id="user-display" class="header__user-name">User</span>
+                <span id="user-role" class="badge badge--admin">Role</span>
+            </div>
+            <button id="logout-btn" class="btn btn--danger btn--sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Logout
+            </button>
+        </div>
+    </header>
+
+            <div style="padding: 2rem;">
+                <!-- Profile Card -->
+                <div id="profileCard" class="profile-card">
+                    <!-- Populated by student.js renderProfile() -->
+                </div>
+
+                <!-- Schedule + Subject Stats -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Today's Schedule</h3>
+                        <div id="scheduleTimeline" class="schedule-timeline">
+                            <p style="color:var(--color-text-muted);">Loading schedule...</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 6px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>Subject-wise Attendance</h3>
+                        <div id="subjectGrid" class="subject-grid">
+                            <p style="color:var(--color-text-muted);">Loading...</p>
+                        </div>
+                        <div style="margin-top:1rem; text-align:center;">
+                            <span id="overall-percentage" style="font-size:1.5rem; font-weight:700; color:var(--color-primary);"></span>
+                            <span style="color:var(--color-text-muted); font-size:0.9rem;"> overall</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar + History -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Attendance Calendar</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                            <button id="cal-prev" class="btn btn--icon">&lt;</button>
+                            <h4 id="calendar-month-title" style="margin:0;">August 2026</h4>
+                            <button id="cal-next" class="btn btn--icon">&gt;</button>
+                        </div>
+                        <div class="calendar-grid-headers" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-weight: 600; font-size: 0.8rem; color: var(--color-text-muted);">
+                            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                        </div>
+                        <div id="calendar-container">
+                            <!-- Calendar populated by JS -->
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Recent Attendance</h3>
+                        <div class="table-responsive">
+                            <table class="attendance-table" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Period</th>
+                                        <th>Subject</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/timetable.js?v=22"></script>
+    <script src="js/mock-data.js?v=22"></script>
+    <script src="js/auth.js?v=22"></script>
+    <script src="js/theme.js?v=22"></script>
+    <script src="js/student.js?v=22"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Student page uses its own sidebar, not setupCommonUI
+            if (window.StudentDashboard) window.StudentDashboard.init();
+
+            var logoutBtn = document.getElementById('sidebar-logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.Auth) window.Auth.logout();
+                });
+            }
+
+            var toggle = document.getElementById('sidebar-toggle');
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    document.getElementById('sidebar').classList.toggle('sidebar--open');
+                });
+            }
+        });
+    </script>
+    <script src="js/profile-modal.js?v=22"></script>
+</body>
+</html>
