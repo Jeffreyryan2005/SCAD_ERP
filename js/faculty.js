@@ -404,21 +404,38 @@
                     const day = String(this.currentDate.getDate()).padStart(2, '0');
                     const dateStr = `${year}-${month}-${day}`;
                     const storageKey = `scad_period_att_${dateStr}_${item.classGroup}_${pNum}`;
-                    const isMarked = localStorage.getItem(storageKey) !== null;
+                    const hasSavedData = localStorage.getItem(storageKey) !== null;
                     const lockStatus = this.checkPeriodLockStatus(pNum, item.classGroup);
-                    
-                    let badge = isMarked 
-                        ? '<span class="badge badge--present">Marked</span>'
-                        : '<span class="badge badge--late">Pending</span>';
+                    const isHODUnlocked = lockStatus.isHODUnlocked;
+                    const isReadOnly = hasSavedData && !isHODUnlocked;
 
-                    if (!isMarked && lockStatus.locked) {
+                    let badge = '';
+                    if (isHODUnlocked) {
+                        badge = '<span class="badge badge--present" style="background:#E8F5E9; color:#2E7D32; border:1px solid #A5D6A7; font-weight:600;">HOD Unlocked</span>';
+                    } else if (hasSavedData) {
+                        badge = '<span class="badge badge--present">Submitted</span>';
+                    } else if (lockStatus.locked) {
                         badge = '<span class="badge badge--absent" style="background:rgba(198,40,40,0.1); color:#C62828; border:1px solid #EF9A9A;">Locked (10m Expired)</span>';
-                    } else if (lockStatus.isHODUnlocked) {
-                        badge += ' <span class="badge badge--present" style="font-size:0.75rem;">HOD Unlocked</span>';
+                    } else {
+                        badge = '<span class="badge badge--late">Pending</span>';
                     }
 
-                    const markBtnText = lockStatus.locked ? 'Request HOD Unlock' : (isMarked ? 'Update Attendance' : (this.dateMode === 'today' ? 'Mark Attendance' : 'Preview Class'));
-                    const markBtnClass = lockStatus.locked ? 'btn btn--sm btn--outline' : 'btn btn--sm btn--primary';
+                    let markBtnText = 'Mark Attendance';
+                    let markBtnClass = 'btn btn--sm btn--primary';
+
+                    if (isHODUnlocked) {
+                        markBtnText = 'Mark Attendance';
+                        markBtnClass = 'btn btn--sm btn--primary';
+                    } else if (hasSavedData) {
+                        markBtnText = 'View Attendance';
+                        markBtnClass = 'btn btn--sm btn--outline';
+                    } else if (lockStatus.locked) {
+                        markBtnText = 'Request HOD Unlock';
+                        markBtnClass = 'btn btn--sm btn--outline';
+                    } else if (this.dateMode !== 'today') {
+                        markBtnText = 'Preview Class';
+                        markBtnClass = 'btn btn--sm btn--primary';
+                    }
 
                     tr.innerHTML = `
                         <td style="padding: 1rem;"><strong>Period ${pNum}</strong></td>
@@ -568,14 +585,18 @@
                 this.odRemarksState = {};
             }
 
-            const isMarked = savedData !== null;
+            const lockStatus = this.checkPeriodLockStatus(pNum, periodData.classGroup);
+            const isHODUnlocked = lockStatus.isHODUnlocked;
+            const hasSavedData = savedData !== null;
+            const isReadOnly = hasSavedData && !isHODUnlocked;
+
             const markAllBtn = document.getElementById('markAllPresentBtn');
             const saveBtn = document.getElementById('saveAttendanceBtn');
             const actionContainer = document.getElementById('attendanceActionButtons') || (saveBtn ? saveBtn.parentElement : null);
 
             let statusBadge = document.getElementById('submittedLockBadge');
 
-            if (isMarked) {
+            if (isReadOnly) {
                 this.attendanceState = JSON.parse(savedData);
                 if (markAllBtn) markAllBtn.style.display = 'none';
                 if (saveBtn) saveBtn.style.display = 'none';
@@ -589,25 +610,45 @@
                     actionContainer.appendChild(statusBadge);
                 } else if (statusBadge) {
                     statusBadge.style.display = 'inline-flex';
+                    statusBadge.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Attendance Submitted (Locked)';
                 }
             } else {
+                // Editable mode (either not marked yet or HOD Unlocked)
                 if (markAllBtn) markAllBtn.style.display = 'inline-block';
                 if (saveBtn) {
                     saveBtn.style.display = 'inline-block';
-                    saveBtn.textContent = 'Submit Attendance';
+                    saveBtn.textContent = isHODUnlocked ? 'Submit Unlocked Attendance' : 'Submit Attendance';
                 }
-                if (statusBadge) statusBadge.style.display = 'none';
-                this.attendanceState = {};
-                this.studentsList.forEach(s => {
-                    if (window.ODExemption && window.ODExemption.isStudentOnOD(s.id, dateStr, pNum)) {
-                        this.attendanceState[s.id] = 'od';
-                        this.odRemarksState[s.id] = 'Approved On-Duty Exemption';
-                    } else {
-                        this.attendanceState[s.id] = 'present';
+                
+                if (isHODUnlocked) {
+                    if (!statusBadge && actionContainer) {
+                        statusBadge = document.createElement('span');
+                        statusBadge.id = 'submittedLockBadge';
+                        statusBadge.className = 'badge badge--present';
+                        statusBadge.style.cssText = 'font-size:0.85rem; padding:6px 14px; font-weight:600; display:inline-flex; align-items:center; gap:4px; background:#E8F5E9; color:#2E7D32; border:1px solid #A5D6A7;';
+                        statusBadge.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> HOD Unlocked (Ready to Mark)';
+                        actionContainer.appendChild(statusBadge);
+                    } else if (statusBadge) {
+                        statusBadge.style.display = 'inline-flex';
+                        statusBadge.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> HOD Unlocked (Ready to Mark)';
                     }
-                });
-                const saveBtn = document.getElementById('saveAttendanceBtn');
-                if (saveBtn) saveBtn.textContent = 'Save Attendance';
+                } else if (statusBadge) {
+                    statusBadge.style.display = 'none';
+                }
+
+                if (hasSavedData) {
+                    this.attendanceState = JSON.parse(savedData);
+                } else {
+                    this.attendanceState = {};
+                    this.studentsList.forEach(s => {
+                        if (window.ODExemption && window.ODExemption.isStudentOnOD(s.id, dateStr, pNum)) {
+                            this.attendanceState[s.id] = 'od';
+                            this.odRemarksState[s.id] = 'Approved On-Duty Exemption';
+                        } else {
+                            this.attendanceState[s.id] = 'present';
+                        }
+                    });
+                }
             }
 
             this.updateSummary();
@@ -627,7 +668,10 @@
             const overrides = window.AttendanceEngine ? window.AttendanceEngine.getOverrides(dateStr) : {};
             const pNum = this.selectedPeriod ? (this.selectedPeriod.period.num || this.selectedPeriod.period) : null;
             const storageKey = pNum ? `scad_period_att_${dateStr}_${this.selectedPeriod.classGroup}_${pNum}` : null;
-            const isMarked = storageKey ? (localStorage.getItem(storageKey) !== null) : false;
+            const lockStatus = pNum ? this.checkPeriodLockStatus(pNum, this.selectedPeriod.classGroup) : { locked: false };
+            const isHODUnlocked = lockStatus.isHODUnlocked;
+            const hasSavedData = storageKey ? (localStorage.getItem(storageKey) !== null) : false;
+            const isMarked = hasSavedData && !isHODUnlocked;
 
             this.studentsList.forEach((student, index) => {
                 const tr = document.createElement('tr');
@@ -752,6 +796,10 @@
                 facultySubmissions[this.user.facultyId].push(pNum);
             }
             localStorage.setItem(`scad_faculty_sub_${dateStr}`, JSON.stringify(facultySubmissions));
+
+            // Clear HOD unlock permission token so period locks into Read-Only mode after submission
+            const unlockKey = `scad_unlocked_${dateStr}_${periodData.classGroup}_${pNum}`;
+            localStorage.removeItem(unlockKey);
 
             // Refresh period to lock in Read-Only mode immediately
             this.showToast('Attendance submitted & locked successfully!');
