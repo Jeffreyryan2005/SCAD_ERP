@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOD Dashboard - SCAD ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css?v=26">
-    <link rel="stylesheet" href="css/base.css?v=26">
-    <link rel="stylesheet" href="css/components.css?v=26">
-    <link rel="stylesheet" href="css/layout.css?v=26">
+    <link rel="stylesheet" href="css/variables.css?v=27">
+    <link rel="stylesheet" href="css/base.css?v=27">
+    <link rel="stylesheet" href="css/components.css?v=27">
+    <link rel="stylesheet" href="css/layout.css?v=27">
     <style>
         .verification-banner {
             background: rgba(25, 118, 210, 0.1);
@@ -212,6 +212,36 @@
             <!-- Populated by JS -->
         </div>
 
+                <!-- Period Attendance Unlock Permissions Queue -->
+        <div class="card" id="hod-unlock-card" style="margin-top: 2rem; margin-bottom: 2rem;">
+            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                    <h3 style="margin: 0; font-size: 1.05rem;">Period Attendance Unlock & Late Marking Requests</h3>
+                </div>
+                <span id="hod-unlock-badge" class="badge badge--late">0 Pending</span>
+            </div>
+            <div class="card__body" style="padding: 0;">
+                <div class="table-container" style="overflow-x: auto;">
+                    <table class="attendance-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr>
+                                <th>Faculty</th>
+                                <th>Class & Period</th>
+                                <th>Date & Window</th>
+                                <th>Reason for Delay</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hod-unlock-table-body">
+                            <tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No pending period unlock requests.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- On-Duty (OD) & Medical Exemption Approvals Queue -->
         <div class="card" style="margin-top: 2rem; margin-bottom: 2rem;">
             <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
@@ -406,16 +436,16 @@
 
     <div id="toast-container"></div>
 
-        <script src="js/timetable.js?v=26"></script>
-    <script src="js/mock-data.js?v=26"></script>
-    <script src="js/auth.js?v=26"></script>
-    <script src="js/theme.js?v=26"></script>
-    <script src="js/audit-trail.js?v=26"></script>
-    <script src="js/od-exemption.js?v=26"></script>
-    <script src="js/reconciliation.js?v=26"></script>
-    <script src="js/warning-letter.js?v=26"></script>
-    <script src="js/hod.js?v=26"></script>
-    <script src="js/profile-modal.js?v=26"></script>
+        <script src="js/timetable.js?v=27"></script>
+    <script src="js/mock-data.js?v=27"></script>
+    <script src="js/auth.js?v=27"></script>
+    <script src="js/theme.js?v=27"></script>
+    <script src="js/audit-trail.js?v=27"></script>
+    <script src="js/od-exemption.js?v=27"></script>
+    <script src="js/reconciliation.js?v=27"></script>
+    <script src="js/warning-letter.js?v=27"></script>
+    <script src="js/hod.js?v=27"></script>
+    <script src="js/profile-modal.js?v=27"></script>
 </body>
 </html>
 

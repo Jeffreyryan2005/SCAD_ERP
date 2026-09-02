@@ -59,6 +59,7 @@
                 window.ODExemption.rejectRequest(reqId, approver, reason);
             }
             this.renderODRequests();
+            this.renderUnlockRequests();
         },
 
         renderDiscrepancies: function() {
@@ -159,6 +160,95 @@
                     </td>
                 </tr>`;
             }).join('');
+        },
+
+        
+        renderUnlockRequests: function() {
+            const tbody = document.getElementById('hod-unlock-table-body');
+            const badge = document.getElementById('hod-unlock-badge');
+            if (!tbody) return;
+
+            const dept = this.user ? this.user.department : 'ALL';
+            let allReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
+            
+            // Filter by department if applicable
+            let deptReqs = allReqs;
+            if (dept !== 'ALL') {
+                deptReqs = allReqs.filter(r => r.department === dept || r.department === 'ALL_I');
+            }
+
+            const pendingCount = deptReqs.filter(r => r.status === 'pending').length;
+            if (badge) {
+                badge.textContent = `${pendingCount} Pending`;
+                badge.className = pendingCount > 0 ? 'badge badge--late' : 'badge badge--present';
+            }
+
+            if (deptReqs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No period unlock requests submitted.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = deptReqs.map(r => {
+                const statusBadge = r.status === 'approved'
+                    ? '<span class="badge badge--present">Unlocked</span>'
+                    : r.status === 'rejected'
+                    ? '<span class="badge badge--absent">Rejected</span>'
+                    : '<span class="badge badge--late">Pending HOD Review</span>';
+
+                const actionHtml = r.status === 'pending'
+                    ? `<div style="display:flex; gap:4px;">
+                        <button class="btn btn--sm btn--primary" onclick="window.HODDashboard.handleUnlock('${r.id}', 'approve')">Approve & Unlock</button>
+                        <button class="btn btn--sm btn--outline" onclick="window.HODDashboard.handleUnlock('${r.id}', 'reject')">Reject</button>
+                       </div>`
+                    : `<span style="font-size:0.8rem; color:var(--color-text-muted);">${r.reviewedBy || 'Processed'}</span>`;
+
+                return `<tr>
+                    <td><strong>${r.facultyName}</strong><br><small style="color:var(--color-text-muted);">${r.facultyId}</small></td>
+                    <td><strong>Period ${r.period}</strong><br><small>${r.classGroup.replace(/-/g, ' ')}</small></td>
+                    <td><strong>${r.date}</strong><br><small>Window: ${r.scheduledTime || '09:00 - 09:10'}</small></td>
+                    <td>${r.reason}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actionHtml}</td>
+                </tr>`;
+            }).join('');
+        },
+
+        handleUnlock: function(reqId, action) {
+            let allReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
+            const req = allReqs.find(r => r.id === reqId);
+            if (!req) return;
+
+            const approverName = this.user ? `${this.user.name} (HOD - ${this.user.department})` : 'HOD';
+
+            if (action === 'approve') {
+                req.status = 'approved';
+                req.reviewedBy = `Approved by ${approverName}`;
+                
+                // Unlock period permission in localStorage
+                const unlockKey = `scad_unlocked_${req.date}_${req.classGroup}_${req.period}`;
+                localStorage.setItem(unlockKey, JSON.stringify({
+                    unlocked: true,
+                    unlockedAt: new Date().toISOString(),
+                    unlockedBy: approverName
+                }));
+
+                // Audit trail
+                if (window.AuditLogger) {
+                    window.AuditLogger.log(
+                        'PERIOD_UNLOCKED_BY_HOD',
+                        `${req.classGroup} (Period ${req.period})`,
+                        `HOD approved late attendance marking for ${req.facultyName}. Reason: ${req.reason}`
+                    );
+                }
+
+                alert(`Permission granted. Period ${req.period} (${req.classGroup}) has been unlocked for ${req.facultyName}.`);
+            } else {
+                req.status = 'rejected';
+                req.reviewedBy = `Rejected by ${approverName}`;
+            }
+
+            localStorage.setItem('scad_unlock_requests', JSON.stringify(allReqs));
+            this.renderUnlockRequests();
         },
 
         init: function () {

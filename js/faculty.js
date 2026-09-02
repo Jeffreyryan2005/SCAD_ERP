@@ -15,6 +15,145 @@
         attendanceState: {},
         studentsList: [],
 
+        
+        checkPeriodLockStatus: function(pNum, classGroup) {
+            const year = this.currentDate.getFullYear();
+            const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(this.currentDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            // If viewing tomorrow's schedule -> Viewing/Advance reallocation only
+            if (dateStr > todayStr) {
+                return { locked: false, isFuture: true, statusText: 'Tomorrow (Advance Schedule)' };
+            }
+
+            // Check if explicitly unlocked by HOD
+            const unlockKey = `scad_unlocked_${dateStr}_${classGroup}_${pNum}`;
+            const isUnlocked = localStorage.getItem(unlockKey);
+            if (isUnlocked) {
+                return { locked: false, isHODUnlocked: true, statusText: 'HOD Unlocked' };
+            }
+
+            // Check 10-minute window for today
+            if (dateStr === todayStr && window.Timetable && window.Timetable.PERIODS) {
+                const periodInfo = window.Timetable.PERIODS.find(p => p.num === pNum);
+                if (periodInfo) {
+                    const [sh, sm] = periodInfo.start.split(':').map(Number);
+                    const now = new Date();
+                    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                    const periodStartMinutes = sh * 60 + sm;
+                    const periodLockMinutes = periodStartMinutes + 10; // 10-minute grace window
+
+                    if (nowMinutes < periodStartMinutes) {
+                        return { locked: false, notStarted: true, statusText: `Starts at ${periodInfo.start}` };
+                    } else if (nowMinutes >= periodStartMinutes && nowMinutes <= periodLockMinutes) {
+                        return { locked: false, inWindow: true, statusText: 'Window Open' };
+                    } else {
+                        // Expired 10-minute window
+                        return { locked: true, expired: true, statusText: 'Locked (10m Expired)' };
+                    }
+                }
+            }
+
+            // If past date without HOD unlock -> locked
+            if (dateStr < todayStr) {
+                return { locked: true, expired: true, statusText: 'Locked (Past Date)' };
+            }
+
+            return { locked: false, inWindow: true, statusText: 'Open' };
+        },
+
+        openUnlockModal: function(item) {
+            this.pendingUnlockItem = item;
+            const modal = document.getElementById('unlockModal');
+            const details = document.getElementById('unlockPeriodDetails');
+            const reasonInput = document.getElementById('unlockReasonInput');
+
+            const pNum = item.period.num || item.period;
+            if (details) {
+                details.textContent = `Period ${pNum} — ${item.subjectName} (${item.classLabel})`;
+            }
+            if (reasonInput) reasonInput.value = '';
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeUnlockModal: function() {
+            const modal = document.getElementById('unlockModal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        submitUnlockRequest: function() {
+            if (!this.pendingUnlockItem) return;
+            const reasonInput = document.getElementById('unlockReasonInput');
+            const reason = reasonInput ? reasonInput.value.trim() : '';
+
+            if (!reason) {
+                alert('Please enter a valid reason for the late marking permission request.');
+                return;
+            }
+
+            const item = this.pendingUnlockItem;
+            const pNum = item.period.num || item.period;
+            const year = this.currentDate.getFullYear();
+            const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(this.currentDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            let allReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
+            const newReq = {
+                id: 'UNL_' + Date.now(),
+                facultyId: this.user.facultyId || this.user.username,
+                facultyName: this.user.name,
+                department: this.user.department,
+                classGroup: item.classGroup,
+                period: pNum,
+                date: dateStr,
+                scheduledTime: (item.period && item.period.time) ? item.period.time : '09:00 - 09:50',
+                reason: reason,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+
+            allReqs.unshift(newReq);
+            localStorage.setItem('scad_unlock_requests', JSON.stringify(allReqs));
+
+            // Audit Trail
+            if (window.AuditLogger) {
+                window.AuditLogger.log(
+                    'UNLOCK_PERMISSION_REQUESTED',
+                    `${item.classGroup} (Period ${pNum})`,
+                    `${this.user.name} requested late attendance unlock from HOD. Reason: ${reason}`
+                );
+            }
+
+            this.closeUnlockModal();
+            this.showToast('Unlock request sent to HOD. Awaiting approval.');
+            this.renderScheduleStrip();
+        },
+
+        instantDemoUnlock: function() {
+            if (!this.pendingUnlockItem) return;
+            const item = this.pendingUnlockItem;
+            const pNum = item.period.num || item.period;
+            const year = this.currentDate.getFullYear();
+            const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(this.currentDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            const unlockKey = `scad_unlocked_${dateStr}_${item.classGroup}_${pNum}`;
+            localStorage.setItem(unlockKey, JSON.stringify({
+                unlocked: true,
+                unlockedAt: new Date().toISOString(),
+                unlockedBy: 'HOD (Instant Demo Override)'
+            }));
+
+            this.closeUnlockModal();
+            this.showToast('Period unlocked! You can now mark attendance.');
+            this.renderScheduleStrip();
+            this.selectPeriod(pNum);
+        },
+
         init: function() {
             // Require faculty role
             if(window.Auth && window.Auth.requireAuth) {
@@ -266,10 +405,20 @@
                     const dateStr = `${year}-${month}-${day}`;
                     const storageKey = `scad_period_att_${dateStr}_${item.classGroup}_${pNum}`;
                     const isMarked = localStorage.getItem(storageKey) !== null;
+                    const lockStatus = this.checkPeriodLockStatus(pNum, item.classGroup);
                     
-                    const badge = isMarked 
+                    let badge = isMarked 
                         ? '<span class="badge badge--present">Marked</span>'
                         : '<span class="badge badge--late">Pending</span>';
+
+                    if (!isMarked && lockStatus.locked) {
+                        badge = '<span class="badge badge--absent" style="background:rgba(198,40,40,0.1); color:#C62828; border:1px solid #EF9A9A;">Locked (10m Expired)</span>';
+                    } else if (lockStatus.isHODUnlocked) {
+                        badge += ' <span class="badge badge--present" style="font-size:0.75rem;">HOD Unlocked</span>';
+                    }
+
+                    const markBtnText = lockStatus.locked ? 'Request HOD Unlock' : (isMarked ? 'Update Attendance' : (this.dateMode === 'today' ? 'Mark Attendance' : 'Preview Class'));
+                    const markBtnClass = lockStatus.locked ? 'btn btn--sm btn--outline' : 'btn btn--sm btn--primary';
 
                     tr.innerHTML = `
                         <td style="padding: 1rem;"><strong>Period ${pNum}</strong></td>
@@ -278,7 +427,7 @@
                         <td style="padding: 1rem;">${item.classLabel} ${badge}</td>
                         <td style="padding: 1rem;">
                             <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                                <button class="btn btn--sm btn--primary mark-btn">${this.dateMode === 'today' ? 'Mark Attendance' : 'Preview Class'}</button>
+                                <button class="${markBtnClass} mark-btn">${markBtnText}</button>
                                 <button class="btn btn--sm btn--outline realloc-btn">${this.dateMode === 'today' ? 'Reallocate' : 'Advance Reallocate'}</button>
                             </div>
                         </td>
@@ -286,7 +435,11 @@
 
                     tr.querySelector('.mark-btn').addEventListener('click', (e) => {
                         e.stopPropagation();
-                        this.selectPeriod(pNum);
+                        if (lockStatus.locked) {
+                            this.openUnlockModal(item);
+                        } else {
+                            this.selectPeriod(pNum);
+                        }
                     });
 
                     tr.querySelector('.realloc-btn').addEventListener('click', (e) => {
