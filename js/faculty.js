@@ -403,11 +403,21 @@
             const dateStr = `${year}-${month}-${day}`;
             const pNum = periodData.period.num || periodData.period;
             const storageKey = `scad_period_att_${dateStr}_${periodData.classGroup}_${pNum}`;
+            const remarksKey = `scad_period_od_remarks_${dateStr}_${periodData.classGroup}_${pNum}`;
+            
             const savedData = localStorage.getItem(storageKey);
+            const savedRemarks = localStorage.getItem(remarksKey);
+
+            if (savedRemarks) {
+                try { this.odRemarksState = JSON.parse(savedRemarks); } catch(e) { this.odRemarksState = {}; }
+            } else {
+                this.odRemarksState = {};
+            }
 
             if (savedData) {
                 this.attendanceState = JSON.parse(savedData);
-                this.updateSummary();
+                const saveBtn = document.getElementById('saveAttendanceBtn');
+                if (saveBtn) saveBtn.textContent = 'Update Attendance';
             } else {
                 this.attendanceState = {};
                 this.studentsList.forEach(s => {
@@ -418,11 +428,11 @@
                         this.attendanceState[s.id] = 'present';
                     }
                 });
-                
-                const sumBox = document.getElementById('attendanceSummary');
-                if(sumBox) sumBox.style.display = 'none';
+                const saveBtn = document.getElementById('saveAttendanceBtn');
+                if (saveBtn) saveBtn.textContent = 'Save Attendance';
             }
 
+            this.updateSummary();
             this.renderAttendanceTable();
         },
 
@@ -446,6 +456,7 @@
                 
                 let nameHtml = `<a href="#" class="profile-btn" data-student-id="${student.id}" style="color:var(--color-primary); font-weight:500; text-decoration:none;">${student.name}</a>`;
                 
+                // Strictly render OD Note only when status is 'od'
                 if (status === 'od' && this.odRemarksState[student.id]) {
                     nameHtml += `<br><span class="badge badge--od" style="margin-top:3px; font-size:0.75rem; display:inline-block;">OD Note: ${this.odRemarksState[student.id]}</span>`;
                 }
@@ -474,18 +485,20 @@
                 const btnA = btnGroup.querySelector('.btn-absent');
                 const btnOD = btnGroup.querySelector('.btn-od');
 
-                const clearAll = () => { btnP.classList.remove('active'); btnA.classList.remove('active'); btnOD.classList.remove('active'); };
-
                 btnP.addEventListener('click', (e) => {
                     e.preventDefault();
                     this.attendanceState[student.id] = 'present';
-                    clearAll(); btnP.classList.add('active');
+                    delete this.odRemarksState[student.id]; // Completely remove OD remark
+                    this.updateSummary();
+                    this.renderAttendanceTable();
                 });
                 
                 btnA.addEventListener('click', (e) => {
                     e.preventDefault();
                     this.attendanceState[student.id] = 'absent';
-                    clearAll(); btnA.classList.add('active');
+                    delete this.odRemarksState[student.id]; // Completely remove OD remark
+                    this.updateSummary();
+                    this.renderAttendanceTable();
                 });
 
                 btnOD.addEventListener('click', (e) => {
@@ -495,7 +508,7 @@
                     if (remark !== null) {
                         this.odRemarksState[student.id] = remark.trim() || 'On-Duty Exemption';
                         this.attendanceState[student.id] = 'od';
-                        clearAll(); btnOD.classList.add('active');
+                        this.updateSummary();
                         this.renderAttendanceTable();
                     }
                 });
@@ -507,7 +520,9 @@
         markAllPresent: function() {
             this.studentsList.forEach(s => {
                 this.attendanceState[s.id] = 'present';
+                delete this.odRemarksState[s.id];
             });
+            this.updateSummary();
             this.renderAttendanceTable();
             this.showToast('All students marked present');
         },
@@ -523,7 +538,11 @@
             const pNum = periodData.period.num || periodData.period;
             
             const storageKey = `scad_period_att_${dateStr}_${periodData.classGroup}_${pNum}`;
+            const remarksKey = `scad_period_od_remarks_${dateStr}_${periodData.classGroup}_${pNum}`;
+            
+            // Persist both attendance state and OD remarks
             localStorage.setItem(storageKey, JSON.stringify(this.attendanceState));
+            localStorage.setItem(remarksKey, JSON.stringify(this.odRemarksState));
             
             // Log to Audit Trail
             if (window.AuditLogger) {
@@ -534,9 +553,9 @@
                     else if (this.attendanceState[k] === 'od') oCount++;
                 }
                 window.AuditLogger.log(
-                    'ATTENDANCE_MARKED',
+                    'ATTENDANCE_UPDATED',
                     `${periodData.classGroup} (Period ${pNum})`,
-                    `Saved attendance: ${pCount} Present, ${aCount} Absent, ${oCount} On-Duty on ${dateStr}`
+                    `Updated attendance: ${pCount} Present, ${aCount} Absent, ${oCount} On-Duty on ${dateStr}`
                 );
             }
             
@@ -550,9 +569,13 @@
             }
             localStorage.setItem(`scad_faculty_sub_${dateStr}`, JSON.stringify(facultySubmissions));
 
+            // Update save button to reflect updated status
+            const saveBtn = document.getElementById('saveAttendanceBtn');
+            if (saveBtn) saveBtn.textContent = 'Update Attendance';
+
             this.updateSummary();
             this.renderScheduleStrip();
-            this.showToast('Attendance saved successfully!');
+            this.showToast('Attendance saved & updated successfully!');
         },
 
         updateSummary: function() {

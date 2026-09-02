@@ -1296,3 +1296,55 @@ textarea.form-input {
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   transform: translateY(-2px);
 }
+
+
+/* ========== FACULTY ATTENDANCE METRICS SUMMARY BAR ========== */
+.attendance-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 1rem !important;
+  margin: 1.25rem 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+@media (max-width: 600px) {
+  .attendance-summary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem !important;
+  }
+}
+
+.summary-item {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+.summary-item .value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.summary-item .label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #718096);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
