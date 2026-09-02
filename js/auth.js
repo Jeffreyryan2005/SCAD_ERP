@@ -481,7 +481,11 @@
 
       card.innerHTML = '<h3 style="margin:0 0 0.5rem 0;font-size:1.2rem;"> Verify Your Identity</h3>'
         + '<p style="color:var(--color-text-muted,#666);font-size:0.9rem;margin:0 0 1rem 0;">To <strong>' + (actionDescription || 'perform this action') + '</strong>, please enter your current password.</p>'
-        + '<input type="password" id="reauth-pwd" class="form-input" style="width:100%;margin-bottom:0.75rem;padding:10px;" placeholder="Enter your password" autofocus>'
+        + '<div class="password-input-wrapper" style="margin-bottom:0.75rem;">'
+        + '<input type="password" id="reauth-pwd" class="form-input" style="width:100%;padding:10px 40px 10px 12px;" placeholder="Enter your password" autofocus>'
+        + '<button type="button" class="password-toggle-btn" onclick="window.togglePasswordVisibility ? window.togglePasswordVisibility(\'reauth-pwd\', this) : null" style="right:8px;">'
+        + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+        + '</button></div>'
         + '<div id="reauth-error" style="color:#C62828;font-size:0.85rem;margin-bottom:0.75rem;display:none;"></div>'
         + '<div style="display:flex;justify-content:flex-end;gap:0.75rem;">'
         + '<button type="button" id="reauth-cancel" class="btn btn--outline" style="padding:8px 1.5rem;">Cancel</button>'

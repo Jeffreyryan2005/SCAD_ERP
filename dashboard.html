@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCAD Attendance Dashboard</title>
-    <link rel="stylesheet" href="css/variables.css?v=22">
-    <link rel="stylesheet" href="css/base.css?v=22">
-    <link rel="stylesheet" href="css/components.css?v=22">
-    <link rel="stylesheet" href="css/layout.css?v=22">
+    <link rel="stylesheet" href="css/variables.css?v=23">
+    <link rel="stylesheet" href="css/base.css?v=23">
+    <link rel="stylesheet" href="css/components.css?v=23">
+    <link rel="stylesheet" href="css/layout.css?v=23">
 </head>
 <body class="app-layout" data-theme="light">
     <!-- Sidebar -->
@@ -274,6 +274,37 @@
                     </div>
                 </div>
             </div>
+                    <!-- Defaulters Section (< 75% Attendance) -->
+            <div class="card" id="defaulters-section" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <h2 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: #C62828;">Defaulters List (Below 75% Attendance)</h2>
+                    </div>
+                    <span id="defaulters-count-badge" class="badge badge--absent">0 Students</span>
+                </div>
+                <div class="card__body" style="padding: 0;">
+                    <div class="table-container" style="overflow-x: auto;">
+                        <table class="attendance-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                            <thead>
+                                <tr>
+                                    <th>Reg No</th>
+                                    <th>Student Name</th>
+                                    <th>Department</th>
+                                    <th>Year</th>
+                                    <th>Attendance % (30 Days)</th>
+                                    <th>Consecutive Absences</th>
+                                    <th>Risk Level</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="defaulters-table-body">
+                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No defaulters below 75% attendance.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -424,17 +455,17 @@
 
     <div id="toast-container" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 200; display: flex; flex-direction: column; gap: 0.75rem;"></div>
 
-    <script src="js/timetable.js?v=22"></script>
-    <script src="js/mock-data.js?v=22"></script>
-    <script src="js/auth.js?v=22"></script>
-    <script src="js/attendance.js?v=22"></script>
-    <script src="js/theme.js?v=22"></script>
-    <script src="js/charts.js?v=22"></script>
-        <script src="js/audit-trail.js?v=22"></script>
-    <script src="js/od-exemption.js?v=22"></script>
-    <script src="js/reconciliation.js?v=22"></script>
-    <script src="js/warning-letter.js?v=22"></script>
-    <script src="js/dashboard.js?v=22"></script>
-    <script src="js/profile-modal.js?v=22"></script>
+    <script src="js/timetable.js?v=23"></script>
+    <script src="js/mock-data.js?v=23"></script>
+    <script src="js/auth.js?v=23"></script>
+    <script src="js/attendance.js?v=23"></script>
+    <script src="js/theme.js?v=23"></script>
+    <script src="js/charts.js?v=23"></script>
+        <script src="js/audit-trail.js?v=23"></script>
+    <script src="js/od-exemption.js?v=23"></script>
+    <script src="js/reconciliation.js?v=23"></script>
+    <script src="js/warning-letter.js?v=23"></script>
+    <script src="js/dashboard.js?v=23"></script>
+    <script src="js/profile-modal.js?v=23"></script>
 </body>
 </html>

@@ -72,6 +72,36 @@
             const parentPhoneBase = 9443200000 + idCounter * 11;
             const parentPhone = `+91 ${String(parentPhoneBase).substring(0,5)} ${String(parentPhoneBase).substring(5)}`;
 
+            // Mentor assignment mapping
+            let mentorId = 'faculty_cse_1';
+            let mentorName = 'Dr. S. Ramesh';
+            if (year === 'I') {
+              const s_mentors = [
+                { id: 'faculty_math', name: 'Dr. N. Lakshmi' },
+                { id: 'faculty_phy', name: 'Dr. R. Mohan' },
+                { id: 'faculty_eng', name: 'Mrs. S. Kavitha' }
+              ];
+              const m = s_mentors[idCounter % s_mentors.length];
+              mentorId = m.id; mentorName = m.name;
+            } else if (dept.code === 'CSE') {
+              const c_mentors = [
+                { id: 'faculty_cse_1', name: 'Dr. S. Ramesh' },
+                { id: 'faculty_cse_2', name: 'Mrs. K. Priya' },
+                { id: 'faculty_cse_3', name: 'Mr. R. Vignesh' }
+              ];
+              const m = c_mentors[idCounter % c_mentors.length];
+              mentorId = m.id; mentorName = m.name;
+            } else if (dept.code === 'ECE') {
+              mentorId = (idCounter % 2 === 0) ? 'faculty_ece' : 'faculty_ece_2';
+              mentorName = (idCounter % 2 === 0) ? 'Dr. M. Anitha' : 'Mr. P. Suresh';
+            } else if (dept.code === 'EEE') {
+              mentorId = 'faculty_eee'; mentorName = 'Dr. V. Kumar';
+            } else if (dept.code === 'MECH') {
+              mentorId = 'faculty_mech'; mentorName = 'Mr. T. Ganesh';
+            } else if (dept.code === 'CIVIL') {
+              mentorId = 'faculty_civil'; mentorName = 'Mrs. L. Sangeetha';
+            }
+
             defaultStudents.push({
               id: idCounter,
               name: name,
@@ -83,6 +113,8 @@
               year: year,
               section: section,
               classGroup: `${dept.code}-${year}-${section}`,
+              mentorId: mentorId,
+              mentorName: mentorName,
               cgpa: (6.5 + (idCounter % 30) * 0.1).toFixed(2),
               arrears: idCounter % 7 === 0 ? 1 : (idCounter % 23 === 0 ? 2 : 0),
               password: regNo,
@@ -317,6 +349,21 @@
     getStudentsFiltered,
     getDeviceAlerts,
     getActiveDeviceCount,
+    getMenteesForFaculty: function (facultyId) {
+      const list = getStudentsList();
+      return list.filter(s => s.mentorId === facultyId || s.mentorId === (facultyId.replace('faculty_', '')));
+    },
+    assignMentor: function (studentId, facultyId, facultyName) {
+      const list = getStudentsList();
+      const st = list.find(s => String(s.id) === String(studentId) || s.regNo === String(studentId));
+      if (st) {
+        st.mentorId = facultyId;
+        st.mentorName = facultyName;
+        saveStudentsList(list);
+        return true;
+      }
+      return false;
+    },
     getAllStudents: function () { return students; }
   };
 

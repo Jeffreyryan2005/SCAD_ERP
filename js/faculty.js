@@ -303,6 +303,9 @@
                 const statusClass = status === 'present' ? 'present' : 'absent';
                 
                 let nameHtml = `<a href="#" class="profile-btn" data-student-id="${student.id}" style="color:var(--color-primary); font-weight:500; text-decoration:none;">${student.name}</a>`;
+                if (this.attendanceState[student.id] === 'od' && this.odRemarksState[student.id]) {
+                    nameHtml += `<br><span class="badge badge--od" style="margin-top:2px; font-size:0.75rem;">OD Note: ${this.odRemarksState[student.id]}</span>`;
+                }
                 const override = overrides[student.id];
                 if (override && override.reason) {
                     const safeReason = override.reason.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -340,8 +343,14 @@
                 });
 
                 btnOD.addEventListener('click', () => {
-                    this.attendanceState[student.id] = 'od';
-                    clearAll(); btnOD.classList.add('active');
+                    const existingRemark = this.odRemarksState[student.id] || '';
+                    const remark = prompt(`Enter On-Duty (OD) / Exemption Reason for ${student.name}:`, existingRemark || 'Technical Symposium / Sports / Medical');
+                    if (remark !== null) {
+                        this.odRemarksState[student.id] = remark.trim() || 'On-Duty Exemption';
+                        this.attendanceState[student.id] = 'od';
+                        clearAll(); btnOD.classList.add('active');
+                        this.renderAttendanceTable();
+                    }
                 });
 
                 tbody.appendChild(tr);

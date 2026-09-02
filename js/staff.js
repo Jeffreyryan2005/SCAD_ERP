@@ -2,6 +2,50 @@
     'use strict';
 
     window.StaffManager = {
+        
+        openMenteesModal: function(staffId) {
+            const staffList = this.getStaffList();
+            const staff = staffList.find(s => String(s.id) === String(staffId));
+            if (!staff) return;
+
+            const modal = document.getElementById('menteesModal');
+            const title = document.getElementById('menteesModalTitle');
+            const subtitle = document.getElementById('menteesModalSubtitle');
+            const tbody = document.getElementById('menteesModalTableBody');
+
+            if (title) title.textContent = `Assigned Mentees`;
+            if (subtitle) subtitle.textContent = `Mentor: ${staff.name} (${staff.department} - ${staff.designation})`;
+
+            const mentees = (window.MockData && window.MockData.getMenteesForFaculty) ? window.MockData.getMenteesForFaculty(staff.id) : [];
+
+            if (tbody) {
+                if (mentees.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No students assigned to this mentor yet.</td></tr>';
+                } else {
+                    tbody.innerHTML = mentees.map(m => {
+                        const attPct = Math.round(72 + (m.id % 25));
+                        const pctColor = attPct < 75 ? '#C62828' : '#2E7D32';
+                        return `<tr>
+                            <td><strong>${m.regNo}</strong></td>
+                            <td><a href="#" class="profile-btn" data-student-id="${m.id}" style="color:var(--color-primary); font-weight:600;">${m.name}</a></td>
+                            <td>Year ${m.year} (${m.section})</td>
+                            <td><span style="font-weight:700; color:${pctColor};">${attPct}%</span></td>
+                            <td><strong>${m.cgpa || '7.50'}</strong></td>
+                            <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears || 0}</span></td>
+                            <td><a href="tel:${(m.parentPhone || '').replace(/\s+/g, '')}">${m.parentPhone || '—'}</a></td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeMenteesModal: function() {
+            const modal = document.getElementById('menteesModal');
+            if (modal) modal.style.display = 'none';
+        },
+
         init: function () {
             this.user = window.Auth ? window.Auth.getCurrentUser() : null;
             if (!this.user || (this.user.role !== 'admin' && this.user.role !== 'hod')) {

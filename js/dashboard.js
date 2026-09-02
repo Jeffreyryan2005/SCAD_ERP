@@ -744,15 +744,23 @@
 
           const tr = document.createElement('tr');
           tr.style.background = riskBg[d.riskLevel];
+          const parentPhoneClean = (d.student.parentPhone || '').replace(/\s+/g, '');
+          const smsMsg = encodeURIComponent(`Dear Parent, Attendance Alert from SCAD CET: Your ward ${d.student.name} (${d.student.regNo}) has ${d.attendancePct}% attendance. Please meet Principal.`);
           tr.innerHTML = `
             <td style="padding:10px 16px;font-weight:500">${d.student.regNo}</td>
-            <td style="padding:10px 16px"><a class="student-name-link profile-btn" data-student-id="${d.student.id}">${self._escapeHtml(d.student.name)}</a></td>
+            <td style="padding:10px 16px"><a class="student-name-link profile-btn" data-student-id="${d.student.id}" style="color:var(--color-primary); font-weight:600; cursor:pointer;">${self._escapeHtml(d.student.name)}</a></td>
             <td style="padding:10px 16px">${d.student.department}</td>
             <td style="padding:10px 16px">${d.student.year}</td>
-            <td style="padding:10px 16px;min-width:180px">${barHtml}</td>
+            <td style="padding:10px 16px;min-width:160px">${barHtml}</td>
             <td style="padding:10px 16px;text-align:center;font-weight:600;color:${d.maxConsecutiveAbsences >= 5 ? '#C62828' : 'var(--color-text)'}">${d.maxConsecutiveAbsences} days</td>
             <td style="padding:10px 16px">
               <span style="padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;background:${riskBg[d.riskLevel]};color:${riskColors[d.riskLevel]};border:1px solid ${riskColors[d.riskLevel]}">${riskLabels[d.riskLevel]}</span>
+            </td>
+            <td style="padding:10px 16px">
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn--sm btn--outline" onclick="window.WarningLetterGenerator ? window.WarningLetterGenerator.generate('${d.student.id}') : null">Letter</button>
+                <button class="btn btn--sm btn--secondary" onclick="window.location.href='sms:${parentPhoneClean}?body=${smsMsg}'">SMS</button>
+              </div>
             </td>`;
           tbody.appendChild(tr);
         });

@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOD Dashboard - SCAD ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css?v=22">
-    <link rel="stylesheet" href="css/base.css?v=22">
-    <link rel="stylesheet" href="css/components.css?v=22">
-    <link rel="stylesheet" href="css/layout.css?v=22">
+    <link rel="stylesheet" href="css/variables.css?v=23">
+    <link rel="stylesheet" href="css/base.css?v=23">
+    <link rel="stylesheet" href="css/components.css?v=23">
+    <link rel="stylesheet" href="css/layout.css?v=23">
     <style>
         .verification-banner {
             background: rgba(25, 118, 210, 0.1);
@@ -271,6 +271,36 @@
                 </div>
             </div>
         </div>
+            <!-- Department Defaulters Section (< 75% Attendance) -->
+        <div class="card" id="hod-defaulters-section" style="margin-top: 2rem; margin-bottom: 2rem;">
+            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <h3 style="margin: 0; font-size: 1.05rem; color: #C62828;">Department Defaulters List (Below 75% Attendance)</h3>
+                </div>
+                <span id="hod-defaulters-count-badge" class="badge badge--absent">0 Students</span>
+            </div>
+            <div class="card__body" style="padding: 0;">
+                <div class="table-container" style="overflow-x: auto;">
+                    <table class="attendance-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr>
+                                <th>Reg No</th>
+                                <th>Student Name</th>
+                                <th>Year / Section</th>
+                                <th>Attendance %</th>
+                                <th>Consecutive Absent</th>
+                                <th>Parent Phone</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hod-defaulters-table-body">
+                            <tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No students below 75% attendance in this department.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Student Profile Modal -->
@@ -376,16 +406,16 @@
 
     <div id="toast-container"></div>
 
-        <script src="js/timetable.js?v=22"></script>
-    <script src="js/mock-data.js?v=22"></script>
-    <script src="js/auth.js?v=22"></script>
-    <script src="js/theme.js?v=22"></script>
-    <script src="js/audit-trail.js?v=22"></script>
-    <script src="js/od-exemption.js?v=22"></script>
-    <script src="js/reconciliation.js?v=22"></script>
-    <script src="js/warning-letter.js?v=22"></script>
-    <script src="js/hod.js?v=22"></script>
-    <script src="js/profile-modal.js?v=22"></script>
+        <script src="js/timetable.js?v=23"></script>
+    <script src="js/mock-data.js?v=23"></script>
+    <script src="js/auth.js?v=23"></script>
+    <script src="js/theme.js?v=23"></script>
+    <script src="js/audit-trail.js?v=23"></script>
+    <script src="js/od-exemption.js?v=23"></script>
+    <script src="js/reconciliation.js?v=23"></script>
+    <script src="js/warning-letter.js?v=23"></script>
+    <script src="js/hod.js?v=23"></script>
+    <script src="js/profile-modal.js?v=23"></script>
 </body>
 </html>
 

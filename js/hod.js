@@ -110,7 +110,55 @@
                     alert('Disciplinary alert recorded and parent notification queued.');
                 }
                 this.renderDiscrepancies();
+            this.renderDefaulters();
             }
+        },
+
+        
+        renderDefaulters: function() {
+            const tbody = document.getElementById('hod-defaulters-table-body');
+            const badge = document.getElementById('hod-defaulters-count-badge');
+            if (!tbody || !window.AttendanceEngine) return;
+
+            const dept = this.user ? this.user.department : 'ALL';
+            const dateStr = this.currentDate.toISOString().split('T')[0];
+            const allDefaulters = window.AttendanceEngine.getDefaulters(dateStr);
+            const deptDefaulters = dept === 'ALL' ? allDefaulters : allDefaulters.filter(d => d.student.department === dept);
+
+            if (badge) {
+                badge.textContent = `${deptDefaulters.length} Students`;
+                badge.className = deptDefaulters.length > 0 ? 'badge badge--absent' : 'badge badge--present';
+            }
+
+            if (deptDefaulters.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:#2E7D32; font-weight:500;">✓ No students below 75% attendance in this department.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = deptDefaulters.map(d => {
+                const s = d.student;
+                const pctColor = d.attendancePct < 60 ? '#C62828' : '#E65100';
+                const parentPhoneClean = (s.parentPhone || '').replace(/\s+/g, '');
+                const smsMsg = encodeURIComponent(`Dear Parent, Attendance Alert from SCAD CET: Your ward ${s.name} (${s.regNo}) has only ${d.attendancePct}% attendance (${d.presentDays}/${d.workingDays} days). Mandatory HOD meeting required.`);
+
+                return `<tr>
+                    <td><strong>${s.regNo}</strong></td>
+                    <td><a href="#" class="profile-btn" data-student-id="${s.id}" style="color:var(--color-primary); font-weight:600;">${s.name}</a></td>
+                    <td>Year ${s.year} (${s.section})</td>
+                    <td>
+                        <span style="font-weight:700; color:${pctColor}; font-size:0.95rem;">${d.attendancePct}%</span>
+                        <small style="color:var(--color-text-muted); display:block;">(${d.presentDays}/${d.workingDays} days)</small>
+                    </td>
+                    <td style="text-align:center; font-weight:600; color:${d.maxConsecutiveAbsences >= 3 ? '#C62828' : 'inherit'};">${d.maxConsecutiveAbsences} days</td>
+                    <td><a href="tel:${parentPhoneClean}" style="color:var(--color-primary); font-size:0.85rem;">${s.parentPhone || '—'}</a></td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            <button class="btn btn--sm btn--outline" onclick="window.WarningLetterGenerator ? window.WarningLetterGenerator.generate('${s.id}') : null">Letter</button>
+                            <button class="btn btn--sm btn--secondary" onclick="window.location.href='sms:${parentPhoneClean}?body=${smsMsg}'">SMS Parent</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
         },
 
         init: function () {

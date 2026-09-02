@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Classes - SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=22">
-    <link rel="stylesheet" href="css/base.css?v=22">
-    <link rel="stylesheet" href="css/components.css?v=22">
-    <link rel="stylesheet" href="css/layout.css?v=22">
+    <link rel="stylesheet" href="css/variables.css?v=23">
+    <link rel="stylesheet" href="css/base.css?v=23">
+    <link rel="stylesheet" href="css/components.css?v=23">
+    <link rel="stylesheet" href="css/layout.css?v=23">
     <style>
         /* Schedule Strip - proper table rendering */
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
@@ -154,8 +154,27 @@
         </div>
     </header>
 
-            <div style="padding: 2rem;">
-                <div class="schedule-table-wrap">
+            <div style="padding: 1.5rem 2rem;">
+                
+                <!-- Faculty Navigation Tabs -->
+                <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--color-border); margin-bottom: 1.5rem; overflow-x: auto;">
+                    <button class="report-tab-btn active" id="tab-btn-schedule" onclick="window.FacultyDashboard.switchView('schedule')">My Schedule & Attendance</button>
+                    <button class="report-tab-btn" id="tab-btn-mentees" onclick="window.FacultyDashboard.switchView('mentees')">My Mentees Portfolio</button>
+                </div>
+
+                <!-- Schedule Section View -->
+                <div id="scheduleSectionView">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                        <h2 style="margin: 0; font-size: 1.2rem;">Class Schedule</h2>
+                        
+                        <!-- Date / Advance Reallocation Switcher -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--color-bg); padding: 4px; border-radius: 8px; border: 1px solid var(--color-border);">
+                            <button id="date-btn-today" class="btn btn--sm btn--primary" onclick="window.FacultyDashboard.setDateMode('today')">Today (Mark Attendance)</button>
+                            <button id="date-btn-tomorrow" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setDateMode('tomorrow')">Tomorrow (Advance Reallocate)</button>
+                        </div>
+                    </div>
+
+                    <div class="schedule-table-wrap">
                     <table id="scheduleStrip">
                         <thead>
                             <tr>
@@ -243,8 +262,74 @@
         </div>
     </div>
 
-    <!-- Student Profile Modal -->
-        <!-- Student Profile Modal -->
+                    </div> <!-- End of #scheduleSectionView -->
+
+                <!-- My Mentees View -->
+                <div id="menteesSectionView" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.25rem;">Assigned Mentee Students</h2>
+                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Track attendance, academic health, and communicate directly with parents.</p>
+                        </div>
+                        <span id="faculty-mentees-count" class="badge badge--present">0 Mentees</span>
+                    </div>
+
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                            <thead>
+                                <tr>
+                                    <th>Reg No</th>
+                                    <th>Student Name</th>
+                                    <th>Year / Sec</th>
+                                    <th>Attendance %</th>
+                                    <th>CGPA</th>
+                                    <th>Arrears</th>
+                                    <th>Parent Phone</th>
+                                    <th>Parent Reachout</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-mentees-tbody">
+                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <!-- Student Profile Modal -->
+                        </div> <!-- End of #scheduleSectionView -->
+
+                <!-- My Mentees View -->
+                <div id="menteesSectionView" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.25rem;">Assigned Mentee Students</h2>
+                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Track attendance, academic health, and communicate directly with parents.</p>
+                        </div>
+                        <span id="faculty-mentees-count" class="badge badge--present">0 Mentees</span>
+                    </div>
+
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                            <thead>
+                                <tr>
+                                    <th>Reg No</th>
+                                    <th>Student Name</th>
+                                    <th>Year / Sec</th>
+                                    <th>Attendance %</th>
+                                    <th>CGPA</th>
+                                    <th>Arrears</th>
+                                    <th>Parent Phone</th>
+                                    <th>Parent Reachout</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-mentees-tbody">
+                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <!-- Student Profile Modal -->
     <div id="profile-modal" class="modal" style="display:none;">
         <div id="profile-overlay" class="modal__overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:150;"></div>
         <div class="modal__card" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--color-surface);border-radius:12px;z-index:151;max-width:520px;width:92%;max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
@@ -346,18 +431,18 @@
 
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=22"></script>
-    <script src="js/mock-data.js?v=22"></script>
-    <script src="js/auth.js?v=22"></script>
-    <script src="js/theme.js?v=22"></script>
-    <script src="js/reallocation.js?v=22"></script>
-    <script src="js/faculty.js?v=22"></script>
+    <script src="js/timetable.js?v=23"></script>
+    <script src="js/mock-data.js?v=23"></script>
+    <script src="js/auth.js?v=23"></script>
+    <script src="js/theme.js?v=23"></script>
+    <script src="js/reallocation.js?v=23"></script>
+    <script src="js/faculty.js?v=23"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();
             if (window.FacultyDashboard) window.FacultyDashboard.init();
         });
     </script>
-    <script src="js/profile-modal.js?v=22"></script>
+    <script src="js/profile-modal.js?v=23"></script>
 </body>
 </html>

@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SCAD College of Engineering & Technology — Biometric Attendance Management System">
     <title>SCAD Attendance System — Login</title>
-    <link rel="stylesheet" href="css/variables.css?v=22">
-    <link rel="stylesheet" href="css/base.css?v=22">
-    <link rel="stylesheet" href="css/components.css?v=22">
-    <link rel="stylesheet" href="css/layout.css?v=22">
+    <link rel="stylesheet" href="css/variables.css?v=23">
+    <link rel="stylesheet" href="css/base.css?v=23">
+    <link rel="stylesheet" href="css/components.css?v=23">
+    <link rel="stylesheet" href="css/layout.css?v=23">
     <style>
         .force-pwd-overlay {
             display: none;
@@ -94,7 +94,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label" for="login-password">Password</label>
-                <input type="password" id="login-password" class="form-input form-input--full" placeholder="Enter password">
+                <div class="password-input-wrapper">
+                    <input type="password" id="login-password" class="form-input form-input--full" placeholder="Enter password">
+                    <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" onclick="window.togglePasswordVisibility('login-password', this)">
+                        <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
             </div>
             <div id="login-error" class="login-error"></div>
             <button id="login-btn" type="submit" class="btn btn--primary btn--full" style="padding:12px">Login</button>
@@ -125,14 +130,24 @@
             <form id="force-pwd-form" autocomplete="off">
                 <div class="form-group">
                     <label class="form-label" for="force-new-pwd">New Password</label>
-                    <input type="password" id="force-new-pwd" class="form-input form-input--full" placeholder="Enter new password" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="force-new-pwd" class="form-input form-input--full" placeholder="Enter new password" required>
+                        <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" onclick="window.togglePasswordVisibility('force-new-pwd', this)">
+                            <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="pwd-strength"><div id="force-pwd-strength-bar" class="pwd-strength-bar"></div></div>
                 <div id="force-pwd-strength-text" class="pwd-strength-text"></div>
                 <div id="force-pwd-rules" class="pwd-rules"></div>
                 <div class="form-group">
                     <label class="form-label" for="force-confirm-pwd">Confirm Password</label>
-                    <input type="password" id="force-confirm-pwd" class="form-input form-input--full" placeholder="Re-enter new password" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="force-confirm-pwd" class="form-input form-input--full" placeholder="Re-enter new password" required>
+                        <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" onclick="window.togglePasswordVisibility('force-confirm-pwd', this)">
+                            <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
                 </div>
                 <div style="background:#E3F2FD; padding:1rem; border-radius:8px; border:1px solid #90CAF9; margin-bottom:1rem;">
                     <label class="form-label" style="color:#1565C0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Set a Security Question</label>
@@ -148,10 +163,10 @@
         </div>
     </div>
 
-    <script src="js/timetable.js?v=22"></script>
-    <script src="js/mock-data.js?v=22"></script>
-    <script src="js/theme.js?v=22"></script>
-    <script src="js/auth.js?v=22"></script>
+    <script src="js/timetable.js?v=23"></script>
+    <script src="js/mock-data.js?v=23"></script>
+    <script src="js/theme.js?v=23"></script>
+    <script src="js/auth.js?v=23"></script>
     <script>
         function fillDemo(user, pass) {
             document.getElementById('login-username').value = user;
@@ -309,6 +324,6 @@
             });
         });
     </script>
-    <script src="js/profile-modal.js?v=22"></script>
+    <script src="js/profile-modal.js?v=23"></script>
 </body>
 </html>
