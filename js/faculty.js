@@ -568,11 +568,35 @@
                 this.odRemarksState = {};
             }
 
-            if (savedData) {
+            const isMarked = savedData !== null;
+            const markAllBtn = document.getElementById('markAllPresentBtn');
+            const saveBtn = document.getElementById('saveAttendanceBtn');
+            const actionContainer = document.getElementById('attendanceActionButtons') || (saveBtn ? saveBtn.parentElement : null);
+
+            let statusBadge = document.getElementById('submittedLockBadge');
+
+            if (isMarked) {
                 this.attendanceState = JSON.parse(savedData);
-                const saveBtn = document.getElementById('saveAttendanceBtn');
-                if (saveBtn) saveBtn.textContent = 'Update Attendance';
+                if (markAllBtn) markAllBtn.style.display = 'none';
+                if (saveBtn) saveBtn.style.display = 'none';
+                
+                if (!statusBadge && actionContainer) {
+                    statusBadge = document.createElement('span');
+                    statusBadge.id = 'submittedLockBadge';
+                    statusBadge.className = 'badge badge--present';
+                    statusBadge.style.cssText = 'font-size:0.85rem; padding:6px 14px; font-weight:600; display:inline-flex; align-items:center; gap:4px;';
+                    statusBadge.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Attendance Submitted (Locked)';
+                    actionContainer.appendChild(statusBadge);
+                } else if (statusBadge) {
+                    statusBadge.style.display = 'inline-flex';
+                }
             } else {
+                if (markAllBtn) markAllBtn.style.display = 'inline-block';
+                if (saveBtn) {
+                    saveBtn.style.display = 'inline-block';
+                    saveBtn.textContent = 'Submit Attendance';
+                }
+                if (statusBadge) statusBadge.style.display = 'none';
                 this.attendanceState = {};
                 this.studentsList.forEach(s => {
                     if (window.ODExemption && window.ODExemption.isStudentOnOD(s.id, dateStr, pNum)) {
@@ -601,6 +625,9 @@
             const day = String(this.currentDate.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
             const overrides = window.AttendanceEngine ? window.AttendanceEngine.getOverrides(dateStr) : {};
+            const pNum = this.selectedPeriod ? (this.selectedPeriod.period.num || this.selectedPeriod.period) : null;
+            const storageKey = pNum ? `scad_period_att_${dateStr}_${this.selectedPeriod.classGroup}_${pNum}` : null;
+            const isMarked = storageKey ? (localStorage.getItem(storageKey) !== null) : false;
 
             this.studentsList.forEach((student, index) => {
                 const tr = document.createElement('tr');
@@ -621,15 +648,18 @@
                     nameHtml += `<br><small style="color:var(--color-text-muted); font-size:0.8rem;">Admin Note: ${safeReason}</small>`;
                 }
 
+                const disabledAttr = isMarked ? 'disabled' : '';
+                const btnGroupStyle = isMarked ? 'style="pointer-events:none; opacity:0.92;"' : '';
+
                 tr.innerHTML = `
                     <td style="padding: 1rem;">${index + 1}</td>
                     <td style="padding: 1rem;">${student.regNo}</td>
                     <td style="padding: 1rem;">${nameHtml}</td>
                     <td style="padding: 1rem;">
-                        <div class="attendance-btn-group" data-id="${student.id}">
-                            <button type="button" class="btn-present ${status === 'present' ? 'active' : ''}">Present</button>
-                            <button type="button" class="btn-absent ${status === 'absent' ? 'active' : ''}">Absent</button>
-                            <button type="button" class="btn-od ${status === 'od' ? 'active' : ''}">OD</button>
+                        <div class="attendance-btn-group" data-id="${student.id}" ${btnGroupStyle}>
+                            <button type="button" class="btn-present ${status === 'present' ? 'active' : ''}" ${disabledAttr}>Present</button>
+                            <button type="button" class="btn-absent ${status === 'absent' ? 'active' : ''}" ${disabledAttr}>Absent</button>
+                            <button type="button" class="btn-od ${status === 'od' ? 'active' : ''}" ${disabledAttr}>OD</button>
                         </div>
                     </td>
                 `;
@@ -723,13 +753,10 @@
             }
             localStorage.setItem(`scad_faculty_sub_${dateStr}`, JSON.stringify(facultySubmissions));
 
-            // Update save button to reflect updated status
-            const saveBtn = document.getElementById('saveAttendanceBtn');
-            if (saveBtn) saveBtn.textContent = 'Update Attendance';
-
-            this.updateSummary();
+            // Refresh period to lock in Read-Only mode immediately
+            this.showToast('Attendance submitted & locked successfully!');
+            this.loadPeriodAttendance(periodData);
             this.renderScheduleStrip();
-            this.showToast('Attendance saved & updated successfully!');
         },
 
         updateSummary: function() {
