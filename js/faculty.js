@@ -239,7 +239,8 @@
 
             this.schedule.forEach(item => {
                 const pNum = item.period.num || item.period;
-                const periodInfo = window.Timetable.PERIODS ? window.Timetable.PERIODS.find(p => p.num === pNum) : null;
+                const periodInfo = (window.Timetable && window.Timetable.PERIODS) ? window.Timetable.PERIODS.find(p => p.num === pNum) : null;
+                const timeStr = periodInfo ? (periodInfo.time || `${periodInfo.start} - ${periodInfo.end}`) : (item.period && item.period.time ? item.period.time : '-');
                 
                 const tr = document.createElement('tr');
                 tr.dataset.period = pNum;
@@ -254,7 +255,7 @@
                     tr.classList.add('free-period');
                     tr.innerHTML = `
                         <td style="padding: 1rem;"><strong>Period ${pNum}</strong></td>
-                        <td style="padding: 1rem;">${periodInfo ? periodInfo.time : '-'}</td>
+                        <td style="padding: 1rem;">${timeStr}</td>
                         <td style="padding: 1rem;" colspan="2"><span style="color:var(--color-text-muted)">Free Period</span></td>
                         <td style="padding: 1rem;">-</td>
                     `;
@@ -272,7 +273,7 @@
 
                     tr.innerHTML = `
                         <td style="padding: 1rem;"><strong>Period ${pNum}</strong></td>
-                        <td style="padding: 1rem;">${periodInfo ? periodInfo.time : '-'}</td>
+                        <td style="padding: 1rem;">${timeStr}</td>
                         <td style="padding: 1rem;"><strong>${item.subjectCode}</strong><br><small style="color:var(--color-text-muted)">${item.subjectName}</small></td>
                         <td style="padding: 1rem;">${item.classLabel} ${badge}</td>
                         <td style="padding: 1rem;">

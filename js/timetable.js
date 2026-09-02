@@ -7,15 +7,15 @@
 
   // ========== PERIOD DEFINITIONS ==========
   const PERIODS = [
-    { num: 1, start: '09:00', end: '09:50', label: 'Period 1' },
-    { num: 2, start: '09:50', end: '10:40', label: 'Period 2' },
+    { num: 1, start: '09:00', end: '09:50', time: '09:00 - 09:50', label: 'Period 1' },
+    { num: 2, start: '09:50', end: '10:40', time: '09:50 - 10:40', label: 'Period 2' },
     // Break 10:40 - 11:00
-    { num: 3, start: '11:00', end: '11:50', label: 'Period 3' },
-    { num: 4, start: '11:50', end: '12:40', label: 'Period 4' },
+    { num: 3, start: '11:00', end: '11:50', time: '11:00 - 11:50', label: 'Period 3' },
+    { num: 4, start: '11:50', end: '12:40', time: '11:50 - 12:40', label: 'Period 4' },
     // Lunch 12:40 - 1:30
-    { num: 5, start: '13:30', end: '14:20', label: 'Period 5' },
-    { num: 6, start: '14:20', end: '15:10', label: 'Period 6' },
-    { num: 7, start: '15:10', end: '16:00', label: 'Period 7' }
+    { num: 5, start: '13:30', end: '14:20', time: '01:30 - 02:20', label: 'Period 5' },
+    { num: 6, start: '14:20', end: '15:10', time: '02:20 - 03:10', label: 'Period 6' },
+    { num: 7, start: '15:10', end: '16:00', time: '03:10 - 04:00', label: 'Period 7' }
   ];
 
   const BREAKS = [
