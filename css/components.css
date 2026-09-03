@@ -1244,40 +1244,54 @@ textarea.form-input {
 
 /* ========== PASSWORD VISIBILITY TOGGLE ========== */
 .password-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.password-input-wrapper .form-input {
-  width: 100%;
+.password-input-wrapper .form-input,
+.password-input-wrapper input {
+  width: 100% !important;
   padding-right: 42px !important;
+  box-sizing: border-box !important;
 }
 
 .password-toggle-btn {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  color: var(--color-text-muted, #757575);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  transition: color 0.2s ease, transform 0.1s ease;
-  border-radius: 4px;
+  position: absolute !important;
+  right: 10px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 6px !important;
+  color: var(--color-text-muted, #757575) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+  transition: color 0.2s ease, transform 0.1s ease !important;
+  border-radius: 4px !important;
+  line-height: 1 !important;
 }
 
 .password-toggle-btn:hover {
-  color: var(--color-primary, #1b5e20);
-  background: rgba(0,0,0,0.04);
+  color: var(--color-primary, #1b5e20) !important;
+  background: rgba(0,0,0,0.06) !important;
 }
 
 .password-toggle-btn:active {
-  transform: scale(0.95);
+  transform: translateY(-50%) scale(0.92) !important;
+}
+
+.password-toggle-btn svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  pointer-events: none !important;
+  stroke: currentColor !important;
 }
 
 /* ========== MENTOR-MENTEE STYLES ========== */

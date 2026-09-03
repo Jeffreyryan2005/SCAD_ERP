@@ -150,3 +150,43 @@
         : '<svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
     }
   };
+
+  /**
+   * Auto-enhance all password inputs across the entire application
+   */
+  function setupAllPasswordFields() {
+    document.querySelectorAll('input[type="password"], input[data-pwd-toggle]').forEach(function(input) {
+      if (!input.id) {
+        input.id = 'pwd_' + Math.random().toString(36).substring(2, 9);
+      }
+      let wrapper = input.parentElement;
+      if (!wrapper || !wrapper.classList.contains('password-input-wrapper')) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'password-input-wrapper';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+      }
+
+      if (!wrapper.querySelector('.password-toggle-btn')) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'password-toggle-btn';
+        btn.setAttribute('aria-label', 'Toggle password visibility');
+        btn.innerHTML = '<svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        btn.onclick = function(e) {
+          e.preventDefault();
+          window.togglePasswordVisibility(input.id, btn);
+        };
+        wrapper.appendChild(btn);
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupAllPasswordFields);
+  } else {
+    setupAllPasswordFields();
+  }
+  // Re-run periodically to capture any modal inputs
+  setInterval(setupAllPasswordFields, 1500);
+
