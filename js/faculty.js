@@ -67,15 +67,31 @@
         openUnlockModal: function(item) {
             this.pendingUnlockItem = item;
             const modal = document.getElementById('unlockModal');
-            const details = document.getElementById('unlockPeriodDetails');
+            const classEl = document.getElementById('unlockPeriodClass');
+            const numEl = document.getElementById('unlockPeriodNumber');
+            const categorySelect = document.getElementById('unlockReasonCategory');
             const reasonInput = document.getElementById('unlockReasonInput');
 
             const pNum = item.period.num || item.period;
-            if (details) {
-                details.textContent = `Period ${pNum} — ${item.subjectName} (${item.classLabel})`;
-            }
-            if (reasonInput) reasonInput.value = '';
+            const timeStr = item.period && item.period.time ? item.period.time : '09:00 - 09:50';
+
+            if (classEl) classEl.textContent = `${item.classLabel} (${item.subjectCode})`;
+            if (numEl) numEl.textContent = `Period ${pNum} (${timeStr})`;
+            if (categorySelect) categorySelect.selectedIndex = 0;
+            if (reasonInput) reasonInput.value = 'Laboratory / Practical Session Overrun';
             if (modal) modal.style.display = 'block';
+        },
+
+        onUnlockPresetChange: function(val) {
+            const reasonInput = document.getElementById('unlockReasonInput');
+            if (reasonInput) {
+                if (val !== 'Other Academic Reason') {
+                    reasonInput.value = val;
+                } else {
+                    reasonInput.value = '';
+                    reasonInput.focus();
+                }
+            }
         },
 
         closeUnlockModal: function() {

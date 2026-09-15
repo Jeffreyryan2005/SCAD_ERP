@@ -42,7 +42,7 @@
         if (deptFilter !== 'ALL' && deptFilter !== 'ALL_I' && student.department !== deptFilter) return;
 
         const gate = gateData[student.id];
-        const groupKey = `${student.department}_${student.year}_${student.section}`;
+        const groupKey = student.classGroup || `${student.department}-${student.year}-${student.section}`;
         const periodAtt = (window.MockData && window.MockData.generatePeriodAttendance) 
           ? (window.MockData.generatePeriodAttendance(dateStr, groupKey)[student.id] || {})
           : {};

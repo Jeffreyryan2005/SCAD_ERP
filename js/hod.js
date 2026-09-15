@@ -251,7 +251,58 @@
             this.renderUnlockRequests();
         },
 
+        
+        _seedMockDataIfNeeded: function() {
+            // Seed Period Unlock Requests
+            let unlockReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
+            if (unlockReqs.length === 0) {
+                const today = new Date().toISOString().split('T')[0];
+                unlockReqs = [
+                    {
+                        id: 'UNL_101',
+                        facultyId: 'faculty_cse_1',
+                        facultyName: 'Dr. S. Ramesh',
+                        department: 'CSE',
+                        classGroup: 'CSE-III-B',
+                        period: 4,
+                        date: today,
+                        scheduledTime: '11:50 - 12:40',
+                        reason: 'Laboratory practical overrun; database cluster server latency delayed marking.',
+                        status: 'pending',
+                        timestamp: new Date(Date.now() - 15 * 60000).toISOString()
+                    },
+                    {
+                        id: 'UNL_102',
+                        facultyId: 'faculty_cse_2',
+                        facultyName: 'Mrs. K. Lakshmi',
+                        department: 'CSE',
+                        classGroup: 'CSE-II-A',
+                        period: 2,
+                        date: today,
+                        scheduledTime: '09:50 - 10:40',
+                        reason: 'Department placement orientation briefing held during period commencement.',
+                        status: 'pending',
+                        timestamp: new Date(Date.now() - 45 * 60000).toISOString()
+                    }
+                ];
+                localStorage.setItem('scad_unlock_requests', JSON.stringify(unlockReqs));
+            }
+
+            // Seed OD Requests for today if none exist for today
+            if (window.ODExemption) {
+                const allOD = window.ODExemption.getRequests();
+                const today = new Date().toISOString().split('T')[0];
+                const hasToday = allOD.some(r => r.date === today);
+                if (!hasToday) {
+                    window.ODExemption.createRequest(2, today, [3, 4, 5, 6, 7], 'Symposium', 'Paper Presentation at Anna University Regional Tech Fest', 'Ref #AU-TF-2026');
+                    window.ODExemption.createRequest(3, today, [1, 2, 3, 4], 'Sports', 'Zonal Inter-College Football Tournament Semi-Finals', 'Physical Director Letter #PD-2026');
+                    window.ODExemption.createRequest(5, today, [1, 2, 3, 4, 5, 6, 7], 'Medical', 'Emergency Dental Surgery Hospitalization', 'Dr. Sundaram Clinic Cert #441');
+                }
+            }
+        },
+
         init: function () {
+            this._seedMockDataIfNeeded();
             this.user = window.Auth ? window.Auth.requireAuth('hod') : null;
             if (!this.user) return;
 

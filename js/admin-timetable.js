@@ -55,6 +55,12 @@
                 });
             });
 
+            // Select first class by default
+            if (classSelect.options.length > 0) {
+                this.currentClass = classSelect.value;
+                this.renderEditor();
+            }
+
             classSelect.addEventListener('change', (e) => {
                 this.currentClass = e.target.value;
                 this.renderEditor();
@@ -141,12 +147,20 @@
         },
 
         resetTimetable: function() {
-            if(!this.currentClass || !confirm('Reset this timetable to factory defaults?')) return;
-            
+            const classSelect = document.getElementById('class-select');
+            if (classSelect && classSelect.value) {
+                this.currentClass = classSelect.value;
+            }
+            if (!this.currentClass) return;
+
+            if (window.Timetable && window.Timetable.resetToDefault) {
+                window.Timetable.resetToDefault(this.currentClass);
+            }
+
             delete this.customTimetables[this.currentClass];
             localStorage.setItem(CUSTOM_TIMETABLE_KEY, JSON.stringify(this.customTimetables));
             
-            this.showToast('Reset to default');
+            this.showToast('Reset ' + this.currentClass + ' timetable to default');
             this.renderEditor();
         },
 

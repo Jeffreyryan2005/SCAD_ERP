@@ -214,6 +214,9 @@
     });
   });
 
+  // Preserve pristine immutable copy of default timetables
+  const DEFAULT_TIMETABLES = JSON.parse(JSON.stringify(TIMETABLES));
+
   // Load custom timetables if available
   const CUSTOM_TIMETABLE_KEY = 'scad_custom_timetables';
   try {
@@ -391,6 +394,26 @@
     PERIODS,
     BREAKS,
     DEPARTMENTS,
+    DEFAULT_TIMETABLES,
+    resetToDefault: function(classKey) {
+      if (classKey) {
+        if (DEFAULT_TIMETABLES[classKey]) {
+          TIMETABLES[classKey] = JSON.parse(JSON.stringify(DEFAULT_TIMETABLES[classKey]));
+        } else {
+          delete TIMETABLES[classKey];
+        }
+        try {
+          const customData = JSON.parse(localStorage.getItem(CUSTOM_TIMETABLE_KEY) || '{}');
+          delete customData[classKey];
+          localStorage.setItem(CUSTOM_TIMETABLE_KEY, JSON.stringify(customData));
+        } catch(e) {}
+      } else {
+        localStorage.removeItem(CUSTOM_TIMETABLE_KEY);
+        Object.keys(DEFAULT_TIMETABLES).forEach(k => {
+          TIMETABLES[k] = JSON.parse(JSON.stringify(DEFAULT_TIMETABLES[k]));
+        });
+      }
+    },
     YEARS,
     FACULTY,
     SUBJECTS,

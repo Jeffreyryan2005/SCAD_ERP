@@ -245,7 +245,7 @@
       const start = (this.currentPage - 1) * this.pageSize;
       const end = Math.min(start + this.pageSize, this.filteredRecords.length);
       const page = this.filteredRecords.slice(start, end);
-      const isAdmin = this.currentUser && this.currentUser.role === 'admin';
+      const isAdmin = this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'hod');
 
       page.forEach((r, idx) => {
         const tr = document.createElement('tr');
@@ -343,11 +343,19 @@
       document.getElementById('edit-status-select').value = statusLabel;
       document.getElementById('edit-reason').value = '';
 
-      document.getElementById('edit-modal').classList.add('active');
+      const editModal = document.getElementById('edit-modal');
+      if (editModal) {
+        editModal.style.display = 'block';
+        editModal.classList.add('active');
+      }
     },
 
     _closeModal: function () {
-      document.getElementById('edit-modal').classList.remove('active');
+      const editModal = document.getElementById('edit-modal');
+      if (editModal) {
+        editModal.style.display = 'none';
+        editModal.classList.remove('active');
+      }
     },
 
     _saveEdit: function () {
@@ -364,6 +372,13 @@
       const newStatus = newStatusRaw.toLowerCase();
 
       window.AttendanceEngine.saveOverride(this.currentDate, studentId, newStatus, reason);
+      if (window.AuditLogger) {
+        window.AuditLogger.log(
+          'ATTENDANCE_OVERRIDE',
+          `Student ID ${studentId}`,
+          `Status changed to ${newStatus}. Reason: ${reason}`
+        );
+      }
       this._showToast('Attendance updated successfully.', 'success');
       this._closeModal();
       this.loadAttendance(this.currentDate);
@@ -622,8 +637,8 @@
         userRole.className = this.currentUser.role === 'admin' ? 'badge badge--admin' : 'badge badge--faculty';
       }
 
-      // Hide actions column for faculty
-      if (this.currentUser && this.currentUser.role !== 'admin') {
+      // Hide actions column for faculty / students
+      if (this.currentUser && this.currentUser.role !== 'admin' && this.currentUser.role !== 'hod') {
         const style = document.createElement('style');
         style.textContent = '.actions-col { display: none !important; }';
         document.head.appendChild(style);
