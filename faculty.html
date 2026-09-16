@@ -6,13 +6,12 @@
     <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Classes - SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=31">
-    <link rel="stylesheet" href="css/base.css?v=31">
-    <link rel="stylesheet" href="css/components.css?v=31">
-    <link rel="stylesheet" href="css/layout.css?v=31">
+    <title>My Classes & Attendance — SCAD ERP</title>
+    <link rel="stylesheet" href="css/variables.css?v=32">
+    <link rel="stylesheet" href="css/base.css?v=32">
+    <link rel="stylesheet" href="css/components.css?v=32">
+    <link rel="stylesheet" href="css/layout.css?v=32">
     <style>
-        /* Schedule Strip - proper table rendering */
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
         #scheduleStrip { width: 100%; border-collapse: collapse; min-width: 650px; }
         #scheduleStrip thead tr { background: var(--color-bg); border-bottom: 2px solid var(--color-border); }
@@ -29,133 +28,158 @@
         .summary-item { text-align: center; }
         .summary-item .value { font-size: 1.5rem; font-weight: 700; }
         .summary-item .label { font-size: 0.85rem; color: var(--color-text-muted); }
+
+        .report-tab-btn {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--color-text-muted, #666);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .report-tab-btn:hover { color: var(--color-primary, #1b5e20); }
+        .report-tab-btn.active { color: var(--color-primary, #1b5e20); border-bottom-color: var(--color-primary, #1b5e20); }
+
+        /* Reallocation Modal */
         #reallocModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: center; justify-content: center; }
         #reallocModal.open { display: flex; }
-        #reallocModal .realloc-card { background: var(--color-surface); border-radius: 12px; padding: 2rem; max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        #reallocModal .realloc-card { background: var(--color-surface); border-radius: 12px; padding: 2rem; max-width: 440px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
         #reallocModal h3 { margin: 0 0 1rem 0; }
         #reallocModal .form-group { margin-bottom: 1rem; }
         #reallocModal label { display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.4rem; }
         #reallocModal select, #reallocModal textarea { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.9rem; background: var(--color-bg); color: var(--color-text); box-sizing: border-box; }
         #reallocModal .btn-row { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+        /* Unlock Modal Styles */
+        #unlockModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1200; }
+        .unlock-modal-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--color-surface, #fff);
+            z-index: 1201;
+            width: 94%;
+            max-width: 560px;
+            border-radius: 12px;
+            box-shadow: 0 24px 50px rgba(0,0,0,0.25);
+            border: 1px solid var(--color-border);
+            box-sizing: border-box;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body data-theme="light">
     <div class="layout">
-            <!-- ========== SIDEBAR ========== -->
-        <!-- ========== SIDEBAR ========== -->
-        <!-- ========== SIDEBAR ========== -->
-        <!-- ========== SIDEBAR ========== -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    <aside id="sidebar" class="sidebar">
-        <div class="sidebar__logo">
-            <img src="assets/logo.png" alt="SCAD Logo" onerror="this.style.display='none'">
-            <div class="sidebar__logo-text">
-                <h2>SCAD</h2>
-                <small>ERP System</small>
-            </div>
-        </div>
-
-        <nav class="sidebar__nav">
-            <a href="dashboard.html" class="sidebar__nav-item admin-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                </span> Dashboard
-            </a>
-            <a href="hod.html" class="sidebar__nav-item hod-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
-                </span> Dept Dashboard
-            </a>
-            <a href="student.html" class="sidebar__nav-item student-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-                </span> My Dashboard
-            </a>
-            <a href="faculty.html" class="sidebar__nav-item faculty-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                </span> My Classes
-            </a>
-            <a href="reports.html" class="sidebar__nav-item admin-only hod-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                </span> Reports
-            </a>
-            <a href="admin-timetable.html" class="sidebar__nav-item admin-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                </span> Timetable
-            </a>
-            <a href="staff.html" class="sidebar__nav-item admin-only hod-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                </span> Staff
-            </a>
-            <a href="students.html" class="sidebar__nav-item admin-only hod-only">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-                </span> Students
-            </a>
-            <a href="notifications.html" class="sidebar__nav-item">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                </span> Notifications
-            </a>
-            <a href="change-password.html" class="sidebar__nav-item">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-                </span> Change Password
-            </a>
-            <a href="#" class="sidebar__nav-item" id="sidebar-logout-btn" style="margin-top: 2rem; color: #ff5252;">
-                <span class="sidebar__nav-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                </span> Logout
-            </a>
-        </nav>
-
-        <div class="sidebar__footer">
-            <div class="sidebar__user">
-                <div class="sidebar__user-avatar" id="sidebar-avatar">U</div>
-                <div class="sidebar__user-info">
-                    <div class="sidebar__user-name" id="sidebar-user-name">User</div>
-                    <div class="sidebar__user-role" id="sidebar-user-role">Role</div>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar__logo">
+                <img src="assets/logo.png" alt="SCAD Logo" onerror="this.style.display='none'">
+                <div class="sidebar__logo-text">
+                    <h2>SCAD</h2>
+                    <small>ERP System</small>
                 </div>
             </div>
-        </div>
-    </aside>
+
+            <nav class="sidebar__nav">
+                <a href="dashboard.html" class="sidebar__nav-item admin-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </span> Dashboard
+                </a>
+                <a href="hod.html" class="sidebar__nav-item hod-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
+                    </span> Dept Dashboard
+                </a>
+                <a href="student.html" class="sidebar__nav-item student-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                    </span> My Dashboard
+                </a>
+                <a href="faculty.html" class="sidebar__nav-item active faculty-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                    </span> My Classes
+                </a>
+                <a href="reports.html" class="sidebar__nav-item admin-only hod-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    </span> Reports
+                </a>
+                <a href="admin-timetable.html" class="sidebar__nav-item admin-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </span> Timetable
+                </a>
+                <a href="staff.html" class="sidebar__nav-item admin-only hod-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </span> Staff
+                </a>
+                <a href="students.html" class="sidebar__nav-item admin-only hod-only">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                    </span> Students
+                </a>
+                <a href="notifications.html" class="sidebar__nav-item">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    </span> Notifications
+                </a>
+                <a href="change-password.html" class="sidebar__nav-item">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                    </span> Change Password
+                </a>
+                <a href="#" class="sidebar__nav-item" id="sidebar-logout-btn" style="margin-top: 2rem; color: #ff5252;">
+                    <span class="sidebar__nav-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </span> Logout
+                </a>
+            </nav>
+
+            <div class="sidebar__footer">
+                <div class="sidebar__user">
+                    <div class="sidebar__user-avatar" id="sidebar-avatar">U</div>
+                    <div class="sidebar__user-info">
+                        <div class="sidebar__user-name" id="sidebar-user-name">User</div>
+                        <div class="sidebar__user-role" id="sidebar-user-role">Role</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
 
         <main class="main-content">
-                <!-- ========== HEADER ========== -->
-        <!-- ========== HEADER ========== -->
-        <!-- ========== HEADER ========== -->
-        <!-- ========== HEADER ========== -->
-        <!-- ========== HEADER ========== -->
-        <!-- ========== HEADER ========== -->
-    <header id="header" class="header">
-        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle menu">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-        <h1 class="header__title" id="dynamic-header-title">SCAD Attendance System</h1>
-        <div class="header__spacer"></div>
-        <span id="header-date" class="header__date"></span>
+            <header id="header" class="header">
+                <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <h1 class="header__title" id="dynamic-header-title">My Classes & Attendance</h1>
+                <div class="header__spacer"></div>
+                <span id="header-date" class="header__date"></span>
 
-        <div class="header__actions">
-            <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            </button>
-            <div class="header__user">
-                <span id="user-display" class="header__user-name">User</span>
-                <span id="user-role" class="badge badge--admin">Role</span>
-            </div>
-            <button id="logout-btn" class="btn btn--danger btn--sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                Logout
-            </button>
-        </div>
-    </header>
+                <div class="header__actions">
+                    <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <div class="header__user">
+                        <span id="user-display" class="header__user-name">User</span>
+                        <span id="user-role" class="badge badge--faculty">Role</span>
+                    </div>
+                    <button id="logout-btn" class="btn btn--danger btn--sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Logout
+                    </button>
+                </div>
+            </header>
 
             <div style="padding: 1.5rem 2rem;">
-                
                 <!-- Faculty Navigation Tabs -->
                 <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--color-border); margin-bottom: 1.5rem; overflow-x: auto;">
                     <button class="report-tab-btn active" id="tab-btn-schedule" onclick="window.FacultyDashboard.switchView('schedule')">My Schedule & Attendance</button>
@@ -175,67 +199,100 @@
                     </div>
 
                     <div class="schedule-table-wrap">
-                    <table id="scheduleStrip">
-                        <thead>
-                            <tr>
-                                <th>Period</th>
-                                <th>Time</th>
-                                <th>Subject</th>
-                                <th>Class</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Period rows populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="incomingReallocations" style="display:none; margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Incoming Reallocation Requests</h3>
-                    <div id="reallocRequestsList" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
-                </div>
-
-                <div id="attendanceContainer" class="attendance-section" style="display: none;">
-                    <div class="attendance-header">
-                        <h3 id="attendanceTitle" style="margin: 0;">Period X - Subject (Class)</h3>
-                        <div style="display:flex; gap:0.5rem;">
-                            <button id="markAllPresentBtn" class="btn btn--outline"> Mark All Present</button>
-                            <button id="saveAttendanceBtn" class="btn btn--primary"> Save Attendance</button>
-                        </div>
-                    </div>
-                    
-                    <div id="attendanceSummary" class="attendance-summary" style="display:none;">
-                        <div class="summary-item"><div class="value" id="summaryTotal">0</div><div class="label">Total</div></div>
-                        <div class="summary-item"><div class="value" id="summaryPresent" style="color:#2E7D32">0</div><div class="label">Present</div></div>
-                        <div class="summary-item"><div class="value" id="summaryAbsent" style="color:#C62828">0</div><div class="label">Absent</div></div>
-                        <div class="summary-item"><div class="value" id="summaryOD" style="color:#F57C00">0</div><div class="label">OD</div></div>
-                    </div>
-
-                    <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="attendance-table" style="width: 100%; border-collapse: collapse;">
+                        <table id="scheduleStrip">
                             <thead>
-                                <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
-                                    <th style="padding: 1rem;">S.No</th>
-                                    <th style="padding: 1rem;">Reg No</th>
-                                    <th style="padding: 1rem;">Student Name</th>
-                                    <th style="padding: 1rem;">Status</th>
+                                <tr>
+                                    <th>Period</th>
+                                    <th>Time</th>
+                                    <th>Subject</th>
+                                    <th>Class</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="attendanceTableBody">
-                                <!-- Populated by JS -->
+                            <tbody>
+                                <!-- Period rows populated by JS -->
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                <div id="emptyState" style="text-align:center; padding:4rem 2rem; color:var(--color-text-muted);">
-                    <h3>Select a period above to mark attendance</h3>
-                    <p>Your schedule for today is shown in the period cards.</p>
-                </div>
-            </div>
+                    <div id="incomingReallocations" style="display:none; margin-bottom: 2rem;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Incoming Reallocation Requests</h3>
+                        <div id="reallocRequestsList" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+                    </div>
+
+                    <div id="attendanceContainer" class="attendance-section" style="display: none;">
+                        <div class="attendance-header">
+                            <h3 id="attendanceTitle" style="margin: 0;">Period X - Subject (Class)</h3>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button id="markAllPresentBtn" class="btn btn--outline">Mark All Present</button>
+                                <button id="saveAttendanceBtn" class="btn btn--primary">Save Attendance</button>
+                            </div>
+                        </div>
+                        
+                        <div id="attendanceSummary" class="attendance-summary" style="display:none;">
+                            <div class="summary-item"><div class="value" id="summaryTotal">0</div><div class="label">Total</div></div>
+                            <div class="summary-item"><div class="value" id="summaryPresent" style="color:#2E7D32">0</div><div class="label">Present</div></div>
+                            <div class="summary-item"><div class="value" id="summaryAbsent" style="color:#C62828">0</div><div class="label">Absent</div></div>
+                            <div class="summary-item"><div class="value" id="summaryOD" style="color:#F57C00">0</div><div class="label">OD</div></div>
+                        </div>
+
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <table class="attendance-table" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                                        <th style="padding: 1rem;">S.No</th>
+                                        <th style="padding: 1rem;">Reg No</th>
+                                        <th style="padding: 1rem;">Student Name</th>
+                                        <th style="padding: 1rem;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="emptyState" style="text-align:center; padding:4rem 2rem; color:var(--color-text-muted);">
+                        <h3>Select a period above to mark attendance</h3>
+                        <p>Your schedule for today is shown in the period cards.</p>
+                    </div>
+                </div> <!-- End of #scheduleSectionView -->
+
+                <!-- My Mentees View (Properly nested inside main layout) -->
+                <div id="menteesSectionView" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.25rem;">Assigned Mentee Students</h2>
+                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Track attendance, academic health, and communicate directly with parents.</p>
+                        </div>
+                        <span id="faculty-mentees-count" class="badge badge--present">0 Mentees</span>
+                    </div>
+
+                    <div class="table-responsive" style="overflow-x: auto; background: var(--color-surface); border-radius: 8px; border: 1px solid var(--color-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                        <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                            <thead>
+                                <tr style="background: var(--color-bg); border-bottom: 2px solid var(--color-border); text-align: left;">
+                                    <th style="padding: 10px 14px;">Reg No</th>
+                                    <th style="padding: 10px 14px;">Student Name</th>
+                                    <th style="padding: 10px 14px;">Year / Sec</th>
+                                    <th style="padding: 10px 14px;">Attendance %</th>
+                                    <th style="padding: 10px 14px;">CGPA</th>
+                                    <th style="padding: 10px 14px;">Arrears</th>
+                                    <th style="padding: 10px 14px;">Parent Phone</th>
+                                    <th style="padding: 10px 14px;">Parent Reachout</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-mentees-tbody">
+                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div> <!-- End of #menteesSectionView -->
+
+            </div> <!-- End padding wrap -->
         </main>
-    </div>
+    </div> <!-- End .layout -->
 
     <!-- Reallocation Modal -->
     <div id="reallocModal">
@@ -262,74 +319,77 @@
         </div>
     </div>
 
-                    </div> <!-- End of #scheduleSectionView -->
-
-                <!-- My Mentees View -->
-                <div id="menteesSectionView" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                        <div>
-                            <h2 style="margin: 0; font-size: 1.25rem;">Assigned Mentee Students</h2>
-                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Track attendance, academic health, and communicate directly with parents.</p>
-                        </div>
-                        <span id="faculty-mentees-count" class="badge badge--present">0 Mentees</span>
+    <!-- Attendance Window Extension & HOD Authorization Modal -->
+    <div id="unlockModal" class="modal" style="display:none;">
+        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:1200; backdrop-filter:blur(3px);" onclick="window.FacultyDashboard ? window.FacultyDashboard.closeUnlockModal() : null"></div>
+        <div class="unlock-modal-card">
+            <!-- Header -->
+            <div style="padding:1.25rem 1.75rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:flex-start; background:var(--color-bg);">
+                <div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:4px;">
+                        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--color-primary); background:rgba(27,94,32,0.1); padding:2px 8px; border-radius:4px;">Academic Regulations §4.2</span>
+                        <span class="badge badge--late" style="font-size:0.72rem; padding:2px 6px;">10-Min Window Expired</span>
                     </div>
+                    <h3 style="margin:0; font-size:1.15rem; color:var(--color-text); font-weight:700;">Period Attendance Unlock Request</h3>
+                </div>
+                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeUnlockModal()" style="background:none; border:none; font-size:1.4rem; line-height:1; cursor:pointer; color:var(--color-text-muted); padding:4px;">&times;</button>
+            </div>
 
-                    <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-                            <thead>
-                                <tr>
-                                    <th>Reg No</th>
-                                    <th>Student Name</th>
-                                    <th>Year / Sec</th>
-                                    <th>Attendance %</th>
-                                    <th>CGPA</th>
-                                    <th>Arrears</th>
-                                    <th>Parent Phone</th>
-                                    <th>Parent Reachout</th>
-                                </tr>
-                            </thead>
-                            <tbody id="faculty-mentees-tbody">
-                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
-                            </tbody>
-                        </table>
+            <!-- Body -->
+            <div style="padding:1.5rem 1.75rem;">
+                <p style="margin:0 0 1.25rem 0; font-size:0.88rem; color:var(--color-text-secondary); line-height:1.5;">
+                    The 10-minute marking window for this period has expired. In accordance with institutional attendance audit norms, period unlock requires formal authorization from the <strong>Head of Department</strong>.
+                </p>
+
+                <!-- Class & Period Strip -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; background:var(--color-bg); padding:0.85rem 1rem; border-radius:8px; border:1px solid var(--color-border); margin-bottom:1.25rem; font-size:0.85rem;">
+                    <div>
+                        <span style="color:var(--color-text-muted); display:block; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Course & Section</span>
+                        <strong id="unlockPeriodClass" style="color:var(--color-text); font-size:0.92rem;">CSE III-B</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--color-text-muted); display:block; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Scheduled Period</span>
+                        <strong id="unlockPeriodNumber" style="color:var(--color-text); font-size:0.92rem;">Period 1 (09:00 - 09:50)</strong>
                     </div>
                 </div>
 
-            <!-- Student Profile Modal -->
-                        </div> <!-- End of #scheduleSectionView -->
-
-                <!-- My Mentees View -->
-                <div id="menteesSectionView" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                        <div>
-                            <h2 style="margin: 0; font-size: 1.25rem;">Assigned Mentee Students</h2>
-                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Track attendance, academic health, and communicate directly with parents.</p>
-                        </div>
-                        <span id="faculty-mentees-count" class="badge badge--present">0 Mentees</span>
-                    </div>
-
-                    <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-                            <thead>
-                                <tr>
-                                    <th>Reg No</th>
-                                    <th>Student Name</th>
-                                    <th>Year / Sec</th>
-                                    <th>Attendance %</th>
-                                    <th>CGPA</th>
-                                    <th>Arrears</th>
-                                    <th>Parent Phone</th>
-                                    <th>Parent Reachout</th>
-                                </tr>
-                            </thead>
-                            <tbody id="faculty-mentees-tbody">
-                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- Structured Reason Category -->
+                <div class="form-group" style="margin-bottom:1rem;">
+                    <label class="form-label" for="unlockReasonCategory" style="font-weight:600; font-size:0.85rem;">Justification Preset <span style="color:#C62828;">*</span></label>
+                    <select id="unlockReasonCategory" class="form-input form-input--full" onchange="window.FacultyDashboard.onUnlockPresetChange(this.value)" style="margin-bottom:0.6rem;">
+                        <option value="Laboratory / Practical Session Overrun">Laboratory / Practical Session Overrun</option>
+                        <option value="Campus Wi-Fi / Server Latency in Classroom">Campus Wi-Fi / Server Latency in Classroom</option>
+                        <option value="Institutional / Placement Committee Briefing">Institutional / Placement Committee Briefing</option>
+                        <option value="Medical Emergency / Student First Aid Support">Medical Emergency / Student First Aid Support</option>
+                        <option value="Faculty Reallocation Transition Delay">Faculty Reallocation Transition Delay</option>
+                        <option value="Other Academic Reason">Other Academic Reason</option>
+                    </select>
                 </div>
 
-            <!-- Student Profile Modal -->
+                <!-- Narrative Justification -->
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label class="form-label" for="unlockReasonInput" style="font-weight:600; font-size:0.85rem;">Faculty Explanation / Remarks <span style="color:#C62828;">*</span></label>
+                    <textarea id="unlockReasonInput" class="form-input form-input--full" rows="3" placeholder="Detail the academic circumstance requiring extension..." style="resize:vertical; font-size:0.88rem; width:100%; box-sizing:border-box; min-height:80px;" required>Laboratory / Practical Session Overrun</textarea>
+                </div>
+
+                <!-- Footer Actions -->
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--color-border); padding-top:1.25rem; margin-top:0.5rem; flex-wrap:wrap; gap:0.75rem;">
+                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.instantDemoUnlock()" style="font-size:0.8rem; border-color:#2E7D32; color:#2E7D32; padding:7px 12px; font-weight:600;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Instant HOD Unlock (Demo)
+                    </button>
+                    <div style="display:flex; gap:0.6rem; align-items:center;">
+                        <button type="button" class="btn btn--secondary btn--sm" onclick="window.FacultyDashboard.closeUnlockModal()" style="padding:7px 14px;">Cancel</button>
+                        <button type="button" class="btn btn--primary btn--sm" id="submitUnlockBtn" onclick="window.FacultyDashboard.submitUnlockRequest()" style="padding:7px 18px; font-weight:600; white-space:nowrap; background:#1B5E20; color:#fff;">
+                            Send Request to HOD
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Profile Modal -->
     <div id="profile-modal" class="modal" style="display:none;">
         <div id="profile-overlay" class="modal__overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:150;"></div>
         <div class="modal__card" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--color-surface);border-radius:12px;z-index:151;max-width:520px;width:92%;max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
@@ -431,89 +491,18 @@
 
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=31"></script>
-    <script src="js/mock-data.js?v=31"></script>
-    <script src="js/auth.js?v=31"></script>
-    <script src="js/theme.js?v=31"></script>
-    <script src="js/reallocation.js?v=31"></script>
-    <script src="js/faculty.js?v=31"></script>
+    <script src="js/timetable.js?v=32"></script>
+    <script src="js/mock-data.js?v=32"></script>
+    <script src="js/auth.js?v=32"></script>
+    <script src="js/theme.js?v=32"></script>
+    <script src="js/reallocation.js?v=32"></script>
+    <script src="js/faculty.js?v=32"></script>
+    <script src="js/profile-modal.js?v=32"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();
             if (window.FacultyDashboard) window.FacultyDashboard.init();
         });
     </script>
-    <script src="js/profile-modal.js?v=31"></script>
-        <!-- Attendance Window Extension & HOD Authorization Modal -->
-    <div id="unlockModal" class="modal" style="display:none;">
-        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:1100; backdrop-filter:blur(3px);" onclick="window.FacultyDashboard ? window.FacultyDashboard.closeUnlockModal() : null"></div>
-        <div class="modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--color-surface, #fff); z-index:1101; width:92%; max-width:540px; border-radius:10px; box-shadow:0 20px 45px rgba(0,0,0,0.22); border:1px solid var(--color-border); overflow:hidden;">
-            
-            <!-- Institutional Header -->
-            <div style="padding:1.25rem 1.75rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:flex-start; background:var(--color-bg);">
-                <div>
-                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:4px;">
-                        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--color-primary); background:rgba(27,94,32,0.1); padding:2px 8px; border-radius:4px;">Academic Regulations §4.2</span>
-                        <span class="badge badge--late" style="font-size:0.72rem; padding:2px 6px;">10-Min Window Closed</span>
-                    </div>
-                    <h3 style="margin:0; font-size:1.15rem; color:var(--color-text); font-weight:700;">Attendance Window Extension Request</h3>
-                </div>
-                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeUnlockModal()" style="background:none; border:none; font-size:1.4rem; line-height:1; cursor:pointer; color:var(--color-text-muted);">&times;</button>
-            </div>
-
-            <!-- Body Content -->
-            <div style="padding:1.5rem 1.75rem;">
-                <p style="margin:0 0 1.25rem 0; font-size:0.88rem; color:var(--color-text-secondary); line-height:1.5;">
-                    The statutory 10-minute entry window for this lecture period has concluded. Submitting late or retrospective attendance requires authorization from the <strong>Head of the Department</strong>.
-                </p>
-
-                <!-- Course & Period Spec -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; background:var(--color-bg); padding:0.85rem 1rem; border-radius:6px; border:1px solid var(--color-border); margin-bottom:1.25rem; font-size:0.85rem;">
-                    <div>
-                        <span style="color:var(--color-text-muted); display:block; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Course & Section</span>
-                        <strong id="unlockPeriodClass" style="color:var(--color-text);">CSE III-B</strong>
-                    </div>
-                    <div>
-                        <span style="color:var(--color-text-muted); display:block; font-size:0.75rem; text-transform:uppercase; font-weight:600;">Scheduled Period</span>
-                        <strong id="unlockPeriodNumber" style="color:var(--color-text);">Period 1 (09:00 - 09:50)</strong>
-                    </div>
-                </div>
-
-                <!-- Structured Reason Category -->
-                <div class="form-group" style="margin-bottom:1rem;">
-                    <label class="form-label" for="unlockReasonCategory" style="font-weight:600; font-size:0.85rem;">Justification Category <span style="color:#C62828;">*</span></label>
-                    <select id="unlockReasonCategory" class="form-input form-input--full" onchange="window.FacultyDashboard.onUnlockPresetChange(this.value)" style="margin-bottom:0.6rem;">
-                        <option value="Laboratory / Practical Session Overrun">Laboratory / Practical Session Overrun</option>
-                        <option value="Campus Wi-Fi / Server Latency in Classroom">Campus Wi-Fi / Server Latency in Classroom</option>
-                        <option value="Institutional / Placement Committee Briefing">Institutional / Placement Committee Briefing</option>
-                        <option value="Faculty Reallocation Transition Delay">Faculty Reallocation Transition Delay</option>
-                        <option value="Other Academic Reason">Other Academic Reason</option>
-                    </select>
-                </div>
-
-                <!-- Narrative Justification -->
-                <div class="form-group" style="margin-bottom:1.25rem;">
-                    <label class="form-label" for="unlockReasonInput" style="font-weight:600; font-size:0.85rem;">Faculty Narrative / Explanation <span style="color:#C62828;">*</span></label>
-                    <textarea id="unlockReasonInput" class="form-input form-input--full" rows="2" placeholder="Detail the academic circumstance requiring extension..." style="resize:vertical; font-size:0.88rem;" required>Laboratory / Practical Session Overrun</textarea>
-                </div>
-
-                <!-- Institutional Footer Actions -->
-                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--color-border); padding-top:1.25rem; margin-top:0.5rem;">
-                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.instantDemoUnlock()" style="font-size:0.78rem; border-color:#2E7D32; color:#2E7D32;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        Instant HOD Approval (Demo)
-                    </button>
-                    <div style="display:flex; gap:0.5rem;">
-                        <button type="button" class="btn btn--secondary btn--sm" onclick="window.FacultyDashboard.closeUnlockModal()">Cancel</button>
-                        <button type="button" class="btn btn--primary btn--sm" id="submitUnlockBtn" onclick="window.FacultyDashboard.submitUnlockRequest()">
-                            Submit for HOD Approval
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-        </div>
-    </div>
 </body>
 </html>

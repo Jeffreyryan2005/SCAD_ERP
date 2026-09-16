@@ -18,7 +18,7 @@
             }
 
             if (reqs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No OD requests submitted for this department.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No pending OD requests for this department.</td></tr>';
                 return;
             }
 
@@ -30,7 +30,7 @@
                     : '<span class="badge badge--late">Pending</span>';
 
                 const actionHtml = r.status === 'pending'
-                    ? `<div style="display:flex; gap:4px;">
+                    ? `<div style="display:flex; gap:6px;">
                         <button class="btn btn--sm btn--primary" onclick="window.HODDashboard.handleOD('${r.id}', 'approve')">Approve</button>
                         <button class="btn btn--sm btn--outline" onclick="window.HODDashboard.handleOD('${r.id}', 'reject')">Reject</button>
                        </div>`
@@ -39,7 +39,7 @@
                 return `<tr>
                     <td><strong><a href="#" class="profile-btn" data-student-id="${r.studentId}" style="color:var(--color-primary);">${r.studentName}</a></strong><br><small style="color:var(--color-text-muted);">${r.regNo}</small></td>
                     <td><span class="badge badge--od">${r.category}</span></td>
-                    <td><strong>${r.date}</strong><br><small>Periods: [${r.periods.join(', ')}]</small></td>
+                    <td><strong>${r.date}</strong><br><small>Periods: [${(r.periods || []).join(', ')}]</small></td>
                     <td>${r.reason}<br><small style="color:var(--color-text-muted);">${r.proofNote || ''}</small></td>
                     <td>${statusBadge}</td>
                     <td>${actionHtml}</td>
@@ -68,7 +68,7 @@
             if (!tbody || !window.ReconciliationEngine) return;
 
             const dept = this.user ? this.user.department : 'ALL';
-            const dateStr = this.currentDate.toISOString().split('T')[0];
+            const dateStr = (typeof this.currentDate === 'string' && this.currentDate) ? this.currentDate : (this.currentDate ? this.currentDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
             const list = window.ReconciliationEngine.analyzeDiscrepancies(dateStr, dept);
 
             if (badge) {
@@ -88,7 +88,7 @@
 
                 const actionBtns = d.resolved
                     ? `<span style="color:#2E7D32; font-weight:600; font-size:0.8rem;">✓ ${d.resolutionText || 'Resolved'}</span>`
-                    : `<div style="display:flex; gap:4px;">
+                    : `<div style="display:flex; gap:6px;">
                         <button class="btn btn--sm btn--outline" onclick="window.HODDashboard.resolveDiscrepancy('${d.id}', 'EXCUSED')">Excuse</button>
                         <button class="btn btn--sm btn--danger" onclick="window.HODDashboard.resolveDiscrepancy('${d.id}', 'CONFIRMED_BUNKING')">Notify Parent</button>
                        </div>`;
@@ -111,18 +111,17 @@
                     alert('Disciplinary alert recorded and parent notification queued.');
                 }
                 this.renderDiscrepancies();
-            this.renderDefaulters();
+                this.renderDefaulters();
             }
         },
 
-        
         renderDefaulters: function() {
             const tbody = document.getElementById('hod-defaulters-table-body');
             const badge = document.getElementById('hod-defaulters-count-badge');
             if (!tbody || !window.AttendanceEngine) return;
 
             const dept = this.user ? this.user.department : 'ALL';
-            const dateStr = this.currentDate.toISOString().split('T')[0];
+            const dateStr = (typeof this.currentDate === 'string' && this.currentDate) ? this.currentDate : (this.currentDate ? this.currentDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
             const allDefaulters = window.AttendanceEngine.getDefaulters(dateStr);
             const deptDefaulters = dept === 'ALL' ? allDefaulters : allDefaulters.filter(d => d.student.department === dept);
 
@@ -162,7 +161,6 @@
             }).join('');
         },
 
-        
         renderUnlockRequests: function() {
             const tbody = document.getElementById('hod-unlock-table-body');
             const badge = document.getElementById('hod-unlock-badge');
@@ -171,10 +169,14 @@
             const dept = this.user ? this.user.department : 'ALL';
             let allReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
             
-            // Filter by department if applicable
+            // Filter by department: faculty department OR class group
             let deptReqs = allReqs;
             if (dept !== 'ALL') {
-                deptReqs = allReqs.filter(r => r.department === dept || r.department === 'ALL_I');
+                deptReqs = allReqs.filter(r => {
+                    if (r.department === dept || r.department === 'ALL_I') return true;
+                    if (r.classGroup && r.classGroup.toUpperCase().includes(dept)) return true;
+                    return false;
+                });
             }
 
             const pendingCount = deptReqs.filter(r => r.status === 'pending').length;
@@ -184,7 +186,7 @@
             }
 
             if (deptReqs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No period unlock requests submitted.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No pending period unlock requests.</td></tr>';
                 return;
             }
 
@@ -196,7 +198,7 @@
                     : '<span class="badge badge--late">Pending HOD Review</span>';
 
                 const actionHtml = r.status === 'pending'
-                    ? `<div style="display:flex; gap:4px;">
+                    ? `<div style="display:flex; gap:6px;">
                         <button class="btn btn--sm btn--primary" onclick="window.HODDashboard.handleUnlock('${r.id}', 'approve')">Approve & Unlock</button>
                         <button class="btn btn--sm btn--outline" onclick="window.HODDashboard.handleUnlock('${r.id}', 'reject')">Reject</button>
                        </div>`
@@ -204,8 +206,8 @@
 
                 return `<tr>
                     <td><strong>${r.facultyName}</strong><br><small style="color:var(--color-text-muted);">${r.facultyId}</small></td>
-                    <td><strong>Period ${r.period}</strong><br><small>${r.classGroup.replace(/-/g, ' ')}</small></td>
-                    <td><strong>${r.date}</strong><br><small>Window: ${r.scheduledTime || '09:00 - 09:10'}</small></td>
+                    <td><strong>Period ${r.period}</strong><br><small>${(r.classGroup || '').replace(/-/g, ' ')}</small></td>
+                    <td><strong>${r.date}</strong><br><small>Window: ${r.scheduledTime || '09:00 - 09:50'}</small></td>
                     <td>${r.reason}</td>
                     <td>${statusBadge}</td>
                     <td>${actionHtml}</td>
@@ -251,49 +253,50 @@
             this.renderUnlockRequests();
         },
 
-        
         _seedMockDataIfNeeded: function() {
-            // Seed Period Unlock Requests
+            const today = (typeof this.currentDate === 'string' && this.currentDate) ? this.currentDate : new Date().toISOString().split('T')[0];
+
+            // 1. Seed Period Unlock Requests
             let unlockReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
-            if (unlockReqs.length === 0) {
-                const today = new Date().toISOString().split('T')[0];
-                unlockReqs = [
+            const hasPendingCSE = unlockReqs.some(r => (r.department === 'CSE' || (r.classGroup && r.classGroup.includes('CSE'))) && r.status === 'pending');
+            if (!hasPendingCSE) {
+                const sampleReqs = [
                     {
-                        id: 'UNL_101',
+                        id: 'UNL_' + (Date.now() - 120000),
                         facultyId: 'faculty_cse_1',
                         facultyName: 'Dr. S. Ramesh',
                         department: 'CSE',
                         classGroup: 'CSE-III-B',
-                        period: 4,
+                        period: 1,
                         date: today,
-                        scheduledTime: '11:50 - 12:40',
+                        scheduledTime: '09:00 - 09:50',
                         reason: 'Laboratory practical overrun; database cluster server latency delayed marking.',
                         status: 'pending',
                         timestamp: new Date(Date.now() - 15 * 60000).toISOString()
                     },
                     {
-                        id: 'UNL_102',
+                        id: 'UNL_' + (Date.now() - 60000),
                         facultyId: 'faculty_cse_2',
-                        facultyName: 'Mrs. K. Lakshmi',
+                        facultyName: 'Mrs. K. Priya',
                         department: 'CSE',
                         classGroup: 'CSE-II-A',
                         period: 2,
                         date: today,
                         scheduledTime: '09:50 - 10:40',
-                        reason: 'Department placement orientation briefing held during period commencement.',
+                        reason: 'Placement orientation briefing held at period commencement.',
                         status: 'pending',
                         timestamp: new Date(Date.now() - 45 * 60000).toISOString()
                     }
                 ];
+                unlockReqs = sampleReqs.concat(unlockReqs);
                 localStorage.setItem('scad_unlock_requests', JSON.stringify(unlockReqs));
             }
 
-            // Seed OD Requests for today if none exist for today
+            // 2. Seed OD Requests for today if none exist for today
             if (window.ODExemption) {
                 const allOD = window.ODExemption.getRequests();
-                const today = new Date().toISOString().split('T')[0];
-                const hasToday = allOD.some(r => r.date === today);
-                if (!hasToday) {
+                const hasODToday = allOD.some(r => r.date === today && r.department === 'CSE');
+                if (!hasODToday) {
                     window.ODExemption.createRequest(2, today, [3, 4, 5, 6, 7], 'Symposium', 'Paper Presentation at Anna University Regional Tech Fest', 'Ref #AU-TF-2026');
                     window.ODExemption.createRequest(3, today, [1, 2, 3, 4], 'Sports', 'Zonal Inter-College Football Tournament Semi-Finals', 'Physical Director Letter #PD-2026');
                     window.ODExemption.createRequest(5, today, [1, 2, 3, 4, 5, 6, 7], 'Medical', 'Emergency Dental Surgery Hospitalization', 'Dr. Sundaram Clinic Cert #441');
@@ -302,9 +305,23 @@
         },
 
         init: function () {
-            this._seedMockDataIfNeeded();
             this.user = window.Auth ? window.Auth.requireAuth('hod') : null;
             if (!this.user) return;
+
+            const datePicker = document.getElementById('date-picker');
+            const today = new Date().toISOString().split('T')[0];
+            if (datePicker) {
+                datePicker.value = today;
+                this.currentDate = today;
+                datePicker.addEventListener('change', (e) => {
+                    this.currentDate = e.target.value;
+                    this.renderDashboard();
+                });
+            } else {
+                this.currentDate = today;
+            }
+
+            this._seedMockDataIfNeeded();
 
             if (window.Theme) {
                 window.Theme.init();
@@ -326,19 +343,6 @@
             const sidebarUserRole = document.getElementById('sidebar-user-role');
             if (sidebarUserRole) sidebarUserRole.textContent = this.user.designation;
 
-            const datePicker = document.getElementById('date-picker');
-            const today = new Date().toISOString().split('T')[0];
-            if (datePicker) {
-                datePicker.value = today;
-                this.currentDate = today;
-                datePicker.addEventListener('change', (e) => {
-                    this.currentDate = e.target.value;
-                    this.renderDashboard();
-                });
-            } else {
-                this.currentDate = today;
-            }
-
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
 
@@ -352,6 +356,16 @@
             const headerLogoutBtn = document.getElementById('logout-btn');
             if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); window.Auth.logout(); });
             if (headerLogoutBtn) headerLogoutBtn.addEventListener('click', () => window.Auth.logout());
+
+            // Real-time synchronization when requests arrive from other tabs (e.g. Faculty)
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'scad_unlock_requests') {
+                    this.renderUnlockRequests();
+                }
+                if (e.key === 'scad_od_requests') {
+                    this.renderODRequests();
+                }
+            });
 
             this.renderDashboard();
         },
@@ -371,6 +385,12 @@
         },
 
         renderDashboard: function () {
+            // Render all departmental data sections
+            this.renderDefaulters();
+            this.renderUnlockRequests();
+            this.renderODRequests();
+            this.renderDiscrepancies();
+
             const grid = document.getElementById('faculty-grid');
             if (!grid || !window.Timetable) return;
 
@@ -419,7 +439,7 @@
                     allSubmitted = false;
                 }
 
-                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span style="font-size: 1.2rem;"></span>';
+                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span style="font-size: 1.2rem;">✓</span>';
 
                 html += '<div class="faculty-card"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><h3 style="margin: 0 0 4px 0;">' + faculty.name + '</h3><div style="font-size: 0.85rem; color: var(--color-text-muted);">' + faculty.designation + '</div></div>' + checkIcon + '</div><div class="period-badges">' + periodsHtml + '</div></div>';
             });
@@ -435,7 +455,7 @@
 
             if (isVerified) {
                 banner.className = 'verification-banner verified';
-                statusText.textContent = 'Daily Attendance Verification: Verified ';
+                statusText.textContent = 'Daily Attendance Verification: Verified ✓';
                 verifyBtn.textContent = 'Verified';
                 verifyBtn.disabled = true;
                 verifyBtn.style.background = '#2E7D32';

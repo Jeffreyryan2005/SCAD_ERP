@@ -75,7 +75,7 @@
             const pNum = item.period.num || item.period;
             const timeStr = item.period && item.period.time ? item.period.time : '09:00 - 09:50';
 
-            if (classEl) classEl.textContent = `${item.classLabel} (${item.subjectCode})`;
+            if (classEl) classEl.textContent = `${item.classLabel || item.classGroup} — ${item.subjectName || item.subjectCode}`;
             if (numEl) numEl.textContent = `Period ${pNum} (${timeStr})`;
             if (categorySelect) categorySelect.selectedIndex = 0;
             if (reasonInput) reasonInput.value = 'Laboratory / Practical Session Overrun';
@@ -213,6 +213,13 @@
 
             // Init clock
             this.startClock();
+
+            // Real-time synchronization when HOD unlocks or requests are updated
+            window.addEventListener('storage', (e) => {
+                if (e.key && (e.key.startsWith('scad_unlocked_') || e.key === 'scad_unlock_requests')) {
+                    this.renderScheduleStrip();
+                }
+            });
 
             // Load data
             this.currentDate = new Date();
@@ -425,11 +432,16 @@
                     const isHODUnlocked = lockStatus.isHODUnlocked;
                     const isReadOnly = hasSavedData && !isHODUnlocked;
 
+                    const allUnlockReqs = JSON.parse(localStorage.getItem('scad_unlock_requests') || '[]');
+                    const pendingUnlock = allUnlockReqs.find(r => r.date === dateStr && r.classGroup === item.classGroup && r.period === pNum && r.status === 'pending');
+
                     let badge = '';
                     if (isHODUnlocked) {
                         badge = '<span class="badge badge--present" style="background:#E8F5E9; color:#2E7D32; border:1px solid #A5D6A7; font-weight:600;">HOD Unlocked</span>';
                     } else if (hasSavedData) {
                         badge = '<span class="badge badge--present">Submitted</span>';
+                    } else if (pendingUnlock) {
+                        badge = '<span class="badge badge--late" style="background:#FFF3E0; color:#E65100; border:1px solid #FFE0B2; font-weight:600;">Awaiting HOD Unlock</span>';
                     } else if (lockStatus.locked) {
                         badge = '<span class="badge badge--absent" style="background:rgba(198,40,40,0.1); color:#C62828; border:1px solid #EF9A9A;">Locked (10m Expired)</span>';
                     } else {
@@ -445,6 +457,9 @@
                     } else if (hasSavedData) {
                         markBtnText = 'View Attendance';
                         markBtnClass = 'btn btn--sm btn--outline';
+                    } else if (pendingUnlock) {
+                        markBtnText = 'Pending Approval';
+                        markBtnClass = 'btn btn--sm btn--secondary';
                     } else if (lockStatus.locked) {
                         markBtnText = 'Request HOD Unlock';
                         markBtnClass = 'btn btn--sm btn--outline';
