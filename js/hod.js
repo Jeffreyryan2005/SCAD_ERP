@@ -80,7 +80,7 @@
             }
 
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#2E7D32; font-weight:500;">✓ No attendance discrepancies or bunking flagged for this department.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#2E7D32; font-weight:500;">No attendance discrepancies or bunking flagged for this department.</td></tr>';
                 return;
             }
 
@@ -90,7 +90,7 @@
                     : '<span class="badge badge--gatemiss">Gate Miss</span>';
 
                 const actionBtns = d.resolved
-                    ? `<span style="color:#2E7D32; font-weight:600; font-size:0.8rem;">✓ ${d.resolutionText || 'Resolved'}</span>`
+                    ? `<span style="color:#2E7D32; font-weight:600; font-size:0.8rem;">${d.resolutionText || 'Resolved'}</span>`
                     : `<div style="display:flex; gap:6px;">
                         <button class="btn btn--sm btn--outline" onclick="window.HODDashboard.resolveDiscrepancy('${d.id}', 'EXCUSED')">Excuse</button>
                         <button class="btn btn--sm btn--danger" onclick="window.HODDashboard.resolveDiscrepancy('${d.id}', 'CONFIRMED_BUNKING')">Notify Parent</button>
@@ -379,7 +379,7 @@
                 if (this.facultyStatus === 'submitted' && missingSubmissions) return;
                 if (this.facultyStatus === 'pending' && !missingSubmissions) return;
 
-                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span style="font-size: 1.2rem;">✓</span>';
+                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span class="badge badge--present" style="font-size:0.75rem; padding:3px 8px;">Submitted</span>';
 
                 html += '<div class="faculty-card"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><h3 style="margin: 0 0 4px 0;">' + faculty.name + '</h3><div style="font-size: 0.85rem; color: var(--color-text-muted);">' + faculty.designation + '</div></div>' + checkIcon + '</div><div class="period-badges">' + periodsHtml + '</div></div>';
             });
@@ -674,7 +674,7 @@
                     allSubmitted = false;
                 }
 
-                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span style="font-size: 1.2rem;">✓</span>';
+                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span class="badge badge--present" style="font-size:0.75rem; padding:3px 8px;">Submitted</span>';
 
                 html += '<div class="faculty-card"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><h3 style="margin: 0 0 4px 0;">' + faculty.name + '</h3><div style="font-size: 0.85rem; color: var(--color-text-muted);">' + faculty.designation + '</div></div>' + checkIcon + '</div><div class="period-badges">' + periodsHtml + '</div></div>';
             });
@@ -690,13 +690,13 @@
 
             if (isVerified) {
                 banner.className = 'verification-banner verified';
-                statusText.textContent = 'Daily Attendance Verification: Verified ✓';
+                statusText.textContent = 'Daily Attendance Verification: Verified';
                 verifyBtn.textContent = 'Verified';
                 verifyBtn.disabled = true;
                 verifyBtn.style.background = '#2E7D32';
             } else {
                 banner.className = 'verification-banner';
-                statusText.textContent = 'Daily Attendance Verification: Pending ⏳';
+                statusText.textContent = 'Daily Attendance Verification: Pending';
                 verifyBtn.textContent = 'Verify & Close Day';
                 verifyBtn.style.background = '';
                 

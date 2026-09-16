@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCAD Attendance Dashboard</title>
-    <link rel="stylesheet" href="css/variables.css?v=34">
-    <link rel="stylesheet" href="css/base.css?v=34">
-    <link rel="stylesheet" href="css/components.css?v=34">
-    <link rel="stylesheet" href="css/layout.css?v=34">
+    <link rel="stylesheet" href="css/variables.css?v=35">
+    <link rel="stylesheet" href="css/base.css?v=35">
+    <link rel="stylesheet" href="css/components.css?v=35">
+    <link rel="stylesheet" href="css/layout.css?v=35">
 </head>
 <body class="app-layout" data-theme="light">
     <!-- Sidebar -->
@@ -199,7 +199,7 @@
                 <!-- Defaulters Filter & Sort Strip -->
                 <div style="padding: 0.75rem 1.25rem; background: var(--color-bg); border-bottom: 1px solid var(--color-border); display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
                     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex: 1;">
-                        <input type="text" id="admin-defaulter-search" class="form-input form-input--sm" placeholder="🔍 Search name / reg no..." style="min-width: 180px; max-width: 240px;" oninput="window.DashboardApp ? window.DashboardApp.onDefaulterSearch(this.value) : null">
+                        <input type="text" id="admin-defaulter-search" class="form-input form-input--sm" placeholder="Search student name or register no..." style="min-width: 180px; max-width: 260px;" oninput="window.DashboardApp ? window.DashboardApp.onDefaulterSearch(this.value) : null">
                         <select id="admin-defaulter-dept" class="form-input form-input--sm" onchange="window.DashboardApp ? window.DashboardApp.onDefaulterFilterChange() : null">
                             <option value="ALL">All Departments</option>
                             <option value="CSE">CSE</option>
@@ -224,9 +224,9 @@
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <label style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted);">Sort:</label>
                         <select id="admin-defaulter-sort" class="form-input form-input--sm" onchange="window.DashboardApp ? window.DashboardApp.onDefaulterSortChange(this.value) : null">
-                            <option value="att_asc">Attendance: Lowest First ⚠️</option>
-                            <option value="att_desc">Attendance: Highest First</option>
-                            <option value="abs_desc">Consecutive Absences: Most First ⚠️</option>
+                            <option value="att_asc">Attendance: Lowest to Highest</option>
+                            <option value="att_desc">Attendance: Highest to Lowest</option>
+                            <option value="abs_desc">Consecutive Absences: Most First</option>
                             <option value="name_asc">Name: A &rarr; Z</option>
                             <option value="reg_asc">Reg No: Ascending</option>
                         </select>
@@ -237,12 +237,12 @@
                         <table class="attendance-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
                             <thead>
                                 <tr>
-                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('regNo') : null">Reg No <span id="asort-reg">↕</span></th>
-                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('name') : null">Student Name <span id="asort-name">↕</span></th>
-                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('dept') : null">Department <span id="asort-dept">↕</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('regNo') : null">Reg No <span id="asort-reg" class="sort-indicator">↕</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('name') : null">Student Name <span id="asort-name" class="sort-indicator">↕</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('dept') : null">Department <span id="asort-dept" class="sort-indicator">↕</span></th>
                                     <th>Year</th>
-                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('att') : null">Attendance % (30 Days) <span id="asort-att">▲</span></th>
-                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('abs') : null">Consecutive Absences <span id="asort-abs">↕</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('att') : null">Attendance % (30 Days) <span id="asort-att" class="sort-indicator">▲</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('abs') : null">Consecutive Absences <span id="asort-abs" class="sort-indicator">↕</span></th>
                                     <th>Risk Level</th>
                                     <th>Actions</th>
                                 </tr>
@@ -438,7 +438,7 @@
                     <div><span style="color:var(--color-text-muted);">Parent:</span> <span id="profile-parent-name">-</span></div>
                     <div style="display:flex; gap:0.4rem; align-items:center;">
                         <span style="color:var(--color-text-muted);">Parent Ph:</span> <span id="profile-parent-phone">-</span>
-                        <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="font-size:0.75rem; padding:2px 6px; background:none; border:none; cursor:pointer;">📋</button>
+                        <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="padding:2px 6px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                     </div>
                 </div>
 
@@ -512,17 +512,17 @@
 
     <div id="toast-container" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 200; display: flex; flex-direction: column; gap: 0.75rem;"></div>
 
-    <script src="js/timetable.js?v=34"></script>
-    <script src="js/mock-data.js?v=34"></script>
-    <script src="js/auth.js?v=34"></script>
-    <script src="js/attendance.js?v=34"></script>
-    <script src="js/theme.js?v=34"></script>
-    <script src="js/charts.js?v=34"></script>
-        <script src="js/audit-trail.js?v=34"></script>
-    <script src="js/od-exemption.js?v=34"></script>
-    <script src="js/reconciliation.js?v=34"></script>
-    <script src="js/warning-letter.js?v=34"></script>
-    <script src="js/dashboard.js?v=34"></script>
-    <script src="js/profile-modal.js?v=34"></script>
+    <script src="js/timetable.js?v=35"></script>
+    <script src="js/mock-data.js?v=35"></script>
+    <script src="js/auth.js?v=35"></script>
+    <script src="js/attendance.js?v=35"></script>
+    <script src="js/theme.js?v=35"></script>
+    <script src="js/charts.js?v=35"></script>
+        <script src="js/audit-trail.js?v=35"></script>
+    <script src="js/od-exemption.js?v=35"></script>
+    <script src="js/reconciliation.js?v=35"></script>
+    <script src="js/warning-letter.js?v=35"></script>
+    <script src="js/dashboard.js?v=35"></script>
+    <script src="js/profile-modal.js?v=35"></script>
 </body>
 </html>

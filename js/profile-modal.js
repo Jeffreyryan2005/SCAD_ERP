@@ -70,11 +70,14 @@
             // Copy Phone Button
             const copyBtn = document.getElementById('profile-copy-phone');
             if (copyBtn) {
+                const defaultIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+                const copiedIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                copyBtn.innerHTML = defaultIcon;
                 copyBtn.onclick = () => {
                     const ph = student.parentPhone || '+91 99887 76655';
                     navigator.clipboard.writeText(ph).then(() => {
-                        copyBtn.textContent = '✓';
-                        setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+                        copyBtn.innerHTML = copiedIcon;
+                        setTimeout(() => { copyBtn.innerHTML = defaultIcon; }, 1500);
                     });
                 };
             }

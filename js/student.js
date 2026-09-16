@@ -80,7 +80,7 @@
                         const lateTime = new Date(`2026-08-13T09:00:00`);
                         if (checkInTime > lateTime) {
                             gateStatusHtml = `<div class="gate-status" style="background-color: rgba(255, 179, 0, 0.2); color: #F57F17;">
-                                ⏳ Late (In: ${myGate.checkIn})
+                                Late (In: ${myGate.checkIn})
                             </div>`;
                         } else {
                             gateStatusHtml = `<div class="gate-status" style="background-color: rgba(76, 175, 80, 0.2); color: var(--color-present, #4CAF50);">
@@ -168,7 +168,7 @@
                     if (!sched) return;
 
                     let statusClass = 'upcoming';
-                    let statusIcon = '⏳';
+                    let statusIcon = '';
                     let statusText = 'Upcoming';
 
                     // 1. Check localStorage first

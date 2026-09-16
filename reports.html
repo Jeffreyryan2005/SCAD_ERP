@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports & Analytics — SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=34">
-    <link rel="stylesheet" href="css/base.css?v=34">
-    <link rel="stylesheet" href="css/components.css?v=34">
-    <link rel="stylesheet" href="css/layout.css?v=34">
+    <link rel="stylesheet" href="css/variables.css?v=35">
+    <link rel="stylesheet" href="css/base.css?v=35">
+    <link rel="stylesheet" href="css/components.css?v=35">
+    <link rel="stylesheet" href="css/layout.css?v=35">
     <style>
         .report-tab-btn {
             padding: 8px 16px;
@@ -389,7 +389,7 @@
                     <div><span style="color:var(--color-text-muted);">Parent:</span> <span id="profile-parent-name">-</span></div>
                     <div style="display:flex; gap:0.4rem; align-items:center;">
                         <span style="color:var(--color-text-muted);">Parent Ph:</span> <span id="profile-parent-phone">-</span>
-                        <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="font-size:0.75rem; padding:2px 6px; background:none; border:none; cursor:pointer;">📋</button>
+                        <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="padding:2px 6px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                     </div>
                 </div>
 
@@ -428,18 +428,18 @@
 
     <div id="toast-container" style="position:fixed; bottom:1.5rem; right:1.5rem; z-index:200; display:flex; flex-direction:column; gap:0.75rem;"></div>
 
-    <script src="js/timetable.js?v=34"></script>
-    <script src="js/mock-data.js?v=34"></script>
-    <script src="js/auth.js?v=34"></script>
-    <script src="js/attendance.js?v=34"></script>
-    <script src="js/theme.js?v=34"></script>
-    <script src="js/charts.js?v=34"></script>
-    <script src="js/audit-trail.js?v=34"></script>
-    <script src="js/od-exemption.js?v=34"></script>
-    <script src="js/reconciliation.js?v=34"></script>
-    <script src="js/warning-letter.js?v=34"></script>
-    <script src="js/dashboard.js?v=34"></script>
-    <script src="js/profile-modal.js?v=34"></script>
+    <script src="js/timetable.js?v=35"></script>
+    <script src="js/mock-data.js?v=35"></script>
+    <script src="js/auth.js?v=35"></script>
+    <script src="js/attendance.js?v=35"></script>
+    <script src="js/theme.js?v=35"></script>
+    <script src="js/charts.js?v=35"></script>
+    <script src="js/audit-trail.js?v=35"></script>
+    <script src="js/od-exemption.js?v=35"></script>
+    <script src="js/reconciliation.js?v=35"></script>
+    <script src="js/warning-letter.js?v=35"></script>
+    <script src="js/dashboard.js?v=35"></script>
+    <script src="js/profile-modal.js?v=35"></script>
     <script>
         window.switchReportTab = function(tabName) {
             document.querySelectorAll('.report-tab-btn').forEach(b => b.classList.remove('active'));
@@ -479,13 +479,13 @@
             if (badge) badge.textContent = `${list.length} Flagged`;
 
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:#2E7D32; font-weight:500;">✓ No discrepancies detected. All gate punches match classroom attendance.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:#2E7D32; font-weight:500;">No discrepancies detected. All gate punches match classroom attendance.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = list.map(d => {
                 const actionBtns = d.resolved 
-                    ? `<span style="color:#2E7D32; font-weight:600; font-size:0.85rem;">✓ ${d.resolutionText || 'Resolved'}</span>`
+                    ? `<span style="color:#2E7D32; font-weight:600; font-size:0.85rem;">${d.resolutionText || 'Resolved'}</span>`
                     : `<div style="display:flex; gap:6px; flex-wrap:wrap;">
                         <button class="btn btn--sm btn--outline" style="padding:4px 8px; font-size:0.78rem;" onclick="window.resolveReportsDiscrepancy('${d.id}', 'EXCUSED')">Excuse (OD)</button>
                         <button class="btn btn--sm btn--danger" style="padding:4px 8px; font-size:0.78rem;" onclick="window.resolveReportsDiscrepancy('${d.id}', 'CONFIRMED_BUNKING')">Confirm Proxy</button>

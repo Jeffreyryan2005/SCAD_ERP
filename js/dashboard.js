@@ -41,7 +41,7 @@
       }
 
       if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#2E7D32; font-weight:500;">✓ No attendance discrepancies or bunking detected. All records reconciled.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#2E7D32; font-weight:500;">No attendance discrepancies detected. All records reconciled.</td></tr>';
         return;
       }
 
@@ -51,7 +51,7 @@
           : '<span class="badge badge--gatemiss">Gate Miss</span>';
 
         const actionBtns = d.resolved
-          ? `<span style="color:#2E7D32; font-weight:600; font-size:0.8rem;">✓ ${d.resolutionText || 'Resolved'}</span>`
+          ? `<span style="color:#2E7D32; font-weight:600; font-size:0.8rem;">${d.resolutionText || 'Resolved'}</span>`
           : `<div style="display:flex; gap:4px;">
               <button class="btn btn--sm btn--outline" onclick="window.Dashboard._resolveDiscrepancy('${d.id}', 'EXCUSED')">Excuse</button>
               <button class="btn btn--sm btn--danger" onclick="window.Dashboard._resolveDiscrepancy('${d.id}', 'CONFIRMED_BUNKING')">Notify Parent</button>
@@ -500,12 +500,12 @@
 
         let icon, color, text, bg;
         if (isVerified) {
-            icon = '';
+            icon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
             color = '#2E7D32';
             bg = 'rgba(46, 125, 50, 0.1)';
             text = 'Verified';
         } else {
-            icon = '⏳';
+            icon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
             color = '#C62828';
             bg = 'rgba(244, 67, 54, 0.1)';
             text = 'Pending';
@@ -741,7 +741,7 @@
 
       // Show loading state while computing (30-day scan)
       section.style.display = '';
-      tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--color-text-muted)">⏳ Analysing 30-day attendance history…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--color-text-muted)">Loading 30-day attendance records...</td></tr>';
       if (badge) badge.textContent = 'Loading…';
 
       // Run async so the rest of the dashboard renders first

@@ -1362,3 +1362,28 @@ textarea.form-input {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* ---- Enterprise Data Table Sort Indicators ---- */
+.sort-indicator {
+  display: inline-block;
+  font-size: 0.7rem;
+  margin-left: 4px;
+  color: var(--color-text-muted, #718096);
+  opacity: 0.7;
+  vertical-align: middle;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+th:hover .sort-indicator {
+  opacity: 1;
+  color: var(--color-primary, #1B5E20);
+}
+
+.stat-pill {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-pill:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+

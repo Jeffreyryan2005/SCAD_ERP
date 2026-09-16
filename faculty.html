@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Classes & Attendance — SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=34">
-    <link rel="stylesheet" href="css/base.css?v=34">
-    <link rel="stylesheet" href="css/components.css?v=34">
-    <link rel="stylesheet" href="css/layout.css?v=34">
+    <link rel="stylesheet" href="css/variables.css?v=35">
+    <link rel="stylesheet" href="css/base.css?v=35">
+    <link rel="stylesheet" href="css/components.css?v=35">
+    <link rel="stylesheet" href="css/layout.css?v=35">
     <style>
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
         #scheduleStrip { width: 100%; border-collapse: collapse; min-width: 650px; }
@@ -240,7 +240,7 @@
                             <!-- Period Marking Student Toolbar -->
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
                                 <div style="display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 260px;">
-                                    <input type="text" id="period-student-search" class="form-input form-input--sm" placeholder="🔍 Filter student name / Reg No..." oninput="window.FacultyDashboard.onPeriodStudentSearch(this.value)" style="max-width: 260px;">
+                                    <input type="text" id="period-student-search" class="form-input form-input--sm" placeholder="Filter student name or Reg No..." oninput="window.FacultyDashboard.onPeriodStudentSearch(this.value)" style="max-width: 260px;">
                                     <div style="display: flex; gap: 4px;">
                                         <button type="button" class="btn btn--sm btn--outline" id="filter-btn-all" onclick="window.FacultyDashboard.filterPeriodStatus('ALL')">All</button>
                                         <button type="button" class="btn btn--sm btn--outline" id="filter-btn-present" onclick="window.FacultyDashboard.filterPeriodStatus('present')">Present</button>
@@ -316,7 +316,7 @@
                         <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; flex: 1;">
                             <div style="position: relative; min-width: 200px; flex: 1; max-width: 300px;">
                                 <input type="text" id="mentee-search-input" class="form-input form-input--sm" placeholder="Search name or reg no..." style="width: 100%; padding-left: 30px;" oninput="window.FacultyDashboard.onMenteeSearch(this.value)">
-                                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--color-text-muted); pointer-events: none;">🔍</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             </div>
                             <select id="mentee-year-filter" class="form-input form-input--sm" style="width: auto;" onchange="window.FacultyDashboard.onMenteeFilterChange()">
                                 <option value="ALL">All Years</option>
@@ -340,11 +340,11 @@
                         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                             <label for="mentee-sort-select" style="font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); white-space: nowrap;">Sort by:</label>
                             <select id="mentee-sort-select" class="form-input form-input--sm" style="width: auto;" onchange="window.FacultyDashboard.onMenteeSortChange(this.value)">
-                                <option value="cgpa_desc">CGPA: Highest First ⭐</option>
+                                <option value="cgpa_desc">CGPA: Highest First</option>
                                 <option value="cgpa_asc">CGPA: Lowest First</option>
-                                <option value="att_asc">Attendance: Lowest First ⚠️</option>
-                                <option value="att_desc">Attendance: Highest First</option>
-                                <option value="arrears_desc">Arrears: Most First ⚠️</option>
+                                <option value="att_asc">Attendance: Lowest to Highest</option>
+                                <option value="att_desc">Attendance: Highest to Lowest</option>
+                                <option value="arrears_desc">Arrears: Most Backlogs First</option>
                                 <option value="name_asc">Name: A &rarr; Z</option>
                                 <option value="reg_asc">Reg No: Ascending</option>
                             </select>
@@ -356,12 +356,12 @@
                         <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
                             <thead>
                                 <tr style="background: var(--color-bg); border-bottom: 2px solid var(--color-border); text-align: left;">
-                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('regNo')">Reg No <span id="sort-icon-regNo">↕</span></th>
-                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('name')">Student Name <span id="sort-icon-name">↕</span></th>
-                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('year')">Year / Sec <span id="sort-icon-year">↕</span></th>
-                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('att')">Attendance % <span id="sort-icon-att">↕</span></th>
-                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('cgpa')">CGPA <span id="sort-icon-cgpa">▲</span></th>
-                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('arrears')">Arrears <span id="sort-icon-arrears">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('regNo')">Reg No <span id="sort-icon-regNo" class="sort-indicator">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('name')">Student Name <span id="sort-icon-name" class="sort-indicator">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('year')">Year / Sec <span id="sort-icon-year" class="sort-indicator">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('att')">Attendance % <span id="sort-icon-att" class="sort-indicator">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('cgpa')">CGPA <span id="sort-icon-cgpa" class="sort-indicator">▲</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('arrears')">Arrears <span id="sort-icon-arrears" class="sort-indicator">↕</span></th>
                                     <th style="padding: 10px 14px;">Parent Phone</th>
                                     <th style="padding: 10px 14px;">Parent Reachout</th>
                                 </tr>
@@ -457,13 +457,13 @@
 
                 <!-- Footer Actions -->
                 <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--color-border); padding-top:1.25rem; margin-top:0.5rem; flex-wrap:wrap; gap:0.75rem;">
-                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.instantDemoUnlock()" style="font-size:0.8rem; border-color:#2E7D32; color:#2E7D32; padding:7px 12px; font-weight:600;">
+                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.instantDemoUnlock()" style="font-size:0.8rem; border-color:var(--color-border); color:var(--color-text-secondary); padding:7px 12px; font-weight:500;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        Instant HOD Unlock (Demo)
+                        Administrative Bypass
                     </button>
                     <div style="display:flex; gap:0.6rem; align-items:center;">
                         <button type="button" class="btn btn--secondary btn--sm" onclick="window.FacultyDashboard.closeUnlockModal()" style="padding:7px 14px;">Cancel</button>
-                        <button type="button" class="btn btn--primary btn--sm" id="submitUnlockBtn" onclick="window.FacultyDashboard.submitUnlockRequest()" style="padding:7px 18px; font-weight:600; white-space:nowrap; background:#1B5E20; color:#fff;">
+                        <button type="button" class="btn btn--primary btn--sm" id="submitUnlockBtn" onclick="window.FacultyDashboard.submitUnlockRequest()" style="padding:7px 18px; font-weight:600; white-space:nowrap; background:var(--color-primary); color:#fff;">
                             Send Request to HOD
                         </button>
                     </div>
@@ -500,7 +500,7 @@
                     <div><span style="color:var(--color-text-muted);">Parent:</span> <span id="profile-parent-name">-</span></div>
                     <div style="display:flex; gap:0.4rem; align-items:center;">
                         <span style="color:var(--color-text-muted);">Parent Ph:</span> <span id="profile-parent-phone">-</span>
-                        <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="font-size:0.75rem; padding:2px 6px; background:none; border:none; cursor:pointer;">📋</button>
+                        <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="padding:2px 6px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                     </div>
                 </div>
 
@@ -574,13 +574,13 @@
 
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=34"></script>
-    <script src="js/mock-data.js?v=34"></script>
-    <script src="js/auth.js?v=34"></script>
-    <script src="js/theme.js?v=34"></script>
-    <script src="js/reallocation.js?v=34"></script>
-    <script src="js/faculty.js?v=34"></script>
-    <script src="js/profile-modal.js?v=34"></script>
+    <script src="js/timetable.js?v=35"></script>
+    <script src="js/mock-data.js?v=35"></script>
+    <script src="js/auth.js?v=35"></script>
+    <script src="js/theme.js?v=35"></script>
+    <script src="js/reallocation.js?v=35"></script>
+    <script src="js/faculty.js?v=35"></script>
+    <script src="js/profile-modal.js?v=35"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();
