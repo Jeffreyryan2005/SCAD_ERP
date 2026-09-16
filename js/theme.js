@@ -7,17 +7,17 @@
 
   const THEME_KEY = 'scad_theme_preference';
 
+  const SUN_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+  const MOON_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+
   /**
    * Initializes the theme based on local storage or defaults to light.
    */
   function init() {
     let savedTheme = localStorage.getItem(THEME_KEY);
-    
     if (!savedTheme) {
-      // Default to light theme for institutional portal
       savedTheme = 'light';
     }
-    
     applyTheme(savedTheme);
   }
 
@@ -35,7 +35,9 @@
    * @returns {string} 'light' or 'dark'
    */
   function getCurrentTheme() {
-    return document.body.getAttribute('data-theme') || 'light';
+    return document.documentElement.getAttribute('data-theme') ||
+           document.body.getAttribute('data-theme') ||
+           'light';
   }
 
   /**
@@ -43,27 +45,57 @@
    * @param {string} theme - 'light' or 'dark'
    */
   function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    if (document.body) {
+      document.body.setAttribute('data-theme', theme);
+    }
     localStorage.setItem(THEME_KEY, theme);
     
-    // Update toggle button icon if it exists
-    const toggleBtn = document.getElementById('theme-toggle-btn');
-    if (toggleBtn) {
+    // Update all theme toggle buttons across the DOM
+    const toggleBtns = document.querySelectorAll('#theme-toggle-btn, .theme-toggle, [data-theme-toggle], #themeToggle');
+    toggleBtns.forEach(function(btn) {
       if (theme === 'dark') {
-        toggleBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
-        toggleBtn.setAttribute('aria-label', 'Switch to light mode');
+        btn.innerHTML = SUN_SVG;
+        btn.setAttribute('aria-label', 'Switch to light mode');
+        btn.setAttribute('title', 'Switch to light mode');
       } else {
-        toggleBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-        toggleBtn.setAttribute('aria-label', 'Switch to dark mode');
+        btn.innerHTML = MOON_SVG;
+        btn.setAttribute('aria-label', 'Switch to dark mode');
+        btn.setAttribute('title', 'Switch to dark mode');
       }
-    }
+    });
+
+    try {
+      window.dispatchEvent(new CustomEvent('scad-theme-changed', { detail: { theme: theme } }));
+    } catch (e) {}
   }
 
-    /**
+  // Universal Touch & Click Handler for Theme Toggle (Eliminates mobile delay & missing listeners)
+  let lastToggleTimestamp = 0;
+  function handleThemeToggleEvent(e) {
+    const btn = e.target.closest('#theme-toggle-btn, .theme-toggle, [data-theme-toggle], #themeToggle');
+    if (!btn) return;
+    
+    const now = Date.now();
+    if (now - lastToggleTimestamp < 350) {
+      e.preventDefault();
+      return;
+    }
+    lastToggleTimestamp = now;
+
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  }
+
+  document.addEventListener('click', handleThemeToggleEvent, true);
+  document.addEventListener('touchend', handleThemeToggleEvent, { passive: false, capture: true });
+
+  /**
    * Initializes global UI elements like the mobile sidebar toggle & overlay.
    */
   function initGlobalUI() {
-    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarToggle = document.getElementById('sidebar-toggle') || document.querySelector('.sidebar-toggle');
     const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
     let overlay = document.getElementById('sidebar-overlay');
 
@@ -74,35 +106,55 @@
       document.body.appendChild(overlay);
     }
 
+    function closeSidebar() {
+      if (sidebar) {
+        sidebar.classList.remove('open');
+        sidebar.classList.remove('sidebar--open');
+      }
+      if (overlay) overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function openSidebar() {
+      if (sidebar) {
+        sidebar.classList.add('open');
+      }
+      if (overlay) overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
     if (sidebarToggle && sidebar) {
       sidebarToggle.onclick = function (e) {
+        e.preventDefault();
         e.stopPropagation();
-        sidebar.classList.toggle('open');
-        if (sidebar.classList.contains('open')) {
-          overlay.classList.add('active');
-          document.body.style.overflow = 'hidden';
+        if (sidebar.classList.contains('open') || sidebar.classList.contains('sidebar--open')) {
+          closeSidebar();
         } else {
-          overlay.classList.remove('active');
-          document.body.style.overflow = '';
+          openSidebar();
         }
+      };
+    }
+
+    // Close button inside sidebar drawer
+    const sidebarCloseBtn = document.getElementById('sidebar-close-btn') || document.querySelector('.sidebar-close-btn');
+    if (sidebarCloseBtn) {
+      sidebarCloseBtn.onclick = function(e) {
+        e.preventDefault();
+        closeSidebar();
       };
     }
 
     if (overlay && sidebar) {
       overlay.onclick = function () {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
+        closeSidebar();
       };
     }
 
     // Auto-close drawer on mobile navigation click
     document.querySelectorAll('.sidebar__nav-item').forEach(function(item) {
       item.addEventListener('click', function() {
-        if (window.innerWidth <= 768 && sidebar) {
-          sidebar.classList.remove('open');
-          if (overlay) overlay.classList.remove('active');
-          document.body.style.overflow = '';
+        if (window.innerWidth <= 768) {
+          closeSidebar();
         }
       });
     });
@@ -115,12 +167,19 @@
         if (window.Auth && window.Auth.logout) window.Auth.logout();
       });
     }
+
+    // Re-apply theme icons to ensure all buttons reflect current state
+    init();
   }
 
-  // Auto-init global UI when DOM is ready
+  // Auto-init theme & global UI when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGlobalUI);
+    document.addEventListener('DOMContentLoaded', function() {
+      init();
+      initGlobalUI();
+    });
   } else {
+    init();
     initGlobalUI();
   }
 

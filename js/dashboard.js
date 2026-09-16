@@ -597,15 +597,10 @@
       if (logoutBtn) logoutBtn.addEventListener('click', () => window.Auth.logout());
 
 
-      // Theme toggle
-      const themeBtn = document.getElementById('theme-toggle-btn');
-      if (themeBtn) {
-        themeBtn.addEventListener('click', function () {
-          if (window.Theme) window.Theme.toggle();
-          // Re-render charts with new theme colors
-          setTimeout(() => self._renderCharts(), 100);
-        });
-      }
+      // Theme toggle & sync
+      window.addEventListener('scad-theme-changed', function () {
+        setTimeout(() => self._renderCharts(), 100);
+      });
 
       // Edit & Profile buttons — event delegation on table body
       const tbody = document.getElementById('attendance-table-body');

@@ -8,16 +8,13 @@
             // Init Theme
             if (window.Theme) {
                 window.Theme.init();
-                const themeToggleBtn = document.getElementById('themeToggle');
-                if (themeToggleBtn) {
-                    themeToggleBtn.addEventListener('click', () => window.Theme.toggle());
-                }
             }
 
             // Setup Logout
-            const logoutBtn = document.getElementById('logoutBtn');
+            const logoutBtn = document.getElementById('logout-btn') || document.getElementById('logoutBtn');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
                     if (window.Auth) window.Auth.logout();
                 });
             }
@@ -51,15 +48,18 @@
 
         updateClock: function() {
             const now = new Date();
-            const clockEl = document.getElementById('realtimeClock');
+            const clockEl = document.getElementById('header-date') || document.getElementById('realtimeClock');
             if (clockEl) {
-                // Showing seconds as requested
-                clockEl.textContent = now.toLocaleTimeString('en-US', { 
+                const datePart = now.toLocaleDateString('en-IN', {
+                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+                });
+                const timePart = now.toLocaleTimeString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit', 
                     second: '2-digit',
                     hour12: true 
                 });
+                clockEl.textContent = `${datePart} • ${timePart}`;
             }
         },
 
@@ -335,23 +335,25 @@
             subjectGrid.innerHTML = html;
             
             // Update Overall Percentage Badge
-            const overallBadge = document.getElementById('overall-percentage');
-            if(overallBadge && totalClassesAll > 0) {
+            const overallBadges = document.querySelectorAll('#overall-percentage, .overall-percentage');
+            if(overallBadges.length > 0 && totalClassesAll > 0) {
                 const overallPct = Math.round((totalAttended / totalClassesAll) * 100);
-                overallBadge.textContent = overallPct + '% Overall';
-                if(overallPct >= 75) {
-                    overallBadge.className = 'badge badge--success';
-                    overallBadge.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-                    overallBadge.style.color = 'var(--color-present, #4CAF50)';
-                } else if(overallPct >= 60) {
-                    overallBadge.className = 'badge badge--warning';
-                    overallBadge.style.backgroundColor = 'rgba(255, 152, 0, 0.1)';
-                    overallBadge.style.color = '#FF9800';
-                } else {
-                    overallBadge.className = 'badge badge--danger';
-                    overallBadge.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
-                    overallBadge.style.color = 'var(--color-absent, #F44336)';
-                }
+                overallBadges.forEach(b => {
+                    b.textContent = overallPct + '% Overall';
+                    if(overallPct >= 75) {
+                        b.className = 'badge badge--success';
+                        b.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                        b.style.color = 'var(--color-present, #4CAF50)';
+                    } else if(overallPct >= 60) {
+                        b.className = 'badge badge--warning';
+                        b.style.backgroundColor = 'rgba(255, 152, 0, 0.1)';
+                        b.style.color = '#FF9800';
+                    } else {
+                        b.className = 'badge badge--danger';
+                        b.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                        b.style.color = 'var(--color-absent, #F44336)';
+                    }
+                });
             }
         },
 
