@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOD Dashboard - SCAD ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css?v=32">
-    <link rel="stylesheet" href="css/base.css?v=32">
-    <link rel="stylesheet" href="css/components.css?v=32">
-    <link rel="stylesheet" href="css/layout.css?v=32">
+    <link rel="stylesheet" href="css/variables.css?v=33">
+    <link rel="stylesheet" href="css/base.css?v=33">
+    <link rel="stylesheet" href="css/components.css?v=33">
+    <link rel="stylesheet" href="css/layout.css?v=33">
     <style>
         .verification-banner {
             background: rgba(25, 118, 210, 0.1);
@@ -203,7 +203,17 @@
             <button id="verify-day-btn" class="btn btn--primary" disabled>Verify & Close Day</button>
         </div>
 
-        <!-- Department Defaulters Section (< 75% Attendance) -->
+        <!-- 1. Faculty Submissions (First Main Section) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; margin-bottom: 1rem;">
+            <h2 style="margin: 0; font-size: 1.25rem;">Faculty Submissions</h2>
+            <input type="date" id="date-picker" class="form-input">
+        </div>
+
+        <div class="faculty-grid" id="faculty-grid">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- 2. Department Defaulters Section (< 75% Attendance) Follows Faculty Submissions -->
         <div class="card" id="hod-defaulters-section" style="margin-top: 2rem; margin-bottom: 2rem;">
             <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -232,15 +242,6 @@
                     </table>
                 </div>
             </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>Faculty Submissions</h2>
-            <input type="date" id="date-picker" class="form-input">
-        </div>
-
-        <div class="faculty-grid" id="faculty-grid">
-            <!-- Populated by JS -->
         </div>
 
                 <!-- Period Attendance Unlock Permissions Queue -->
@@ -437,16 +438,17 @@
 
     <div id="toast-container"></div>
 
-        <script src="js/timetable.js?v=32"></script>
-    <script src="js/mock-data.js?v=32"></script>
-    <script src="js/auth.js?v=32"></script>
-    <script src="js/theme.js?v=32"></script>
-    <script src="js/audit-trail.js?v=32"></script>
-    <script src="js/od-exemption.js?v=32"></script>
-    <script src="js/reconciliation.js?v=32"></script>
-    <script src="js/warning-letter.js?v=32"></script>
-    <script src="js/hod.js?v=32"></script>
-    <script src="js/profile-modal.js?v=32"></script>
+    <script src="js/timetable.js?v=33"></script>
+    <script src="js/mock-data.js?v=33"></script>
+    <script src="js/auth.js?v=33"></script>
+    <script src="js/attendance.js?v=33"></script>
+    <script src="js/theme.js?v=33"></script>
+    <script src="js/audit-trail.js?v=33"></script>
+    <script src="js/od-exemption.js?v=33"></script>
+    <script src="js/reconciliation.js?v=33"></script>
+    <script src="js/warning-letter.js?v=33"></script>
+    <script src="js/hod.js?v=33"></script>
+    <script src="js/profile-modal.js?v=33"></script>
 </body>
 </html>
 

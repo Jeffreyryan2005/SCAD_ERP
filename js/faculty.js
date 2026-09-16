@@ -275,7 +275,12 @@
             if (!tbody || !window.MockData) return;
 
             const fid = this.user ? (this.user.facultyId || this.user.username) : 'faculty_cse_1';
-            const mentees = window.MockData.getMenteesForFaculty ? window.MockData.getMenteesForFaculty(fid) : [];
+            let mentees = window.MockData.getMenteesForFaculty ? window.MockData.getMenteesForFaculty(fid) : [];
+
+            if ((!mentees || mentees.length === 0) && window.MockData.getAllStudents) {
+                const all = window.MockData.getAllStudents();
+                mentees = all.slice(0, 16);
+            }
 
             if (badge) badge.textContent = `${mentees.length} Mentees`;
 
@@ -284,20 +289,23 @@
                 return;
             }
 
-            tbody.innerHTML = mentees.map(m => {
-                const attPct = Math.round(72 + (m.id % 25));
+            tbody.innerHTML = mentees.map((m, idx) => {
+                const attPct = m.attendancePct || Math.round(74 + ((m.id || idx) % 24));
                 const pctColor = attPct < 75 ? '#C62828' : '#2E7D32';
-                const parentPhoneClean = (m.parentPhone || '').replace(/\s+/g, '');
-                const smsMsg = encodeURIComponent(`Dear Parent, SCAD CET Mentor Update: Your ward ${m.name} (${m.regNo}) current attendance is ${attPct}%, CGPA: ${m.cgpa}. Please contact mentor.`);
+                const phoneStr = m.parentPhone || `+91 94432 ${String(10000 + (m.id || idx) * 11).substring(0, 5)}`;
+                const parentPhoneClean = phoneStr.replace(/\s+/g, '');
+                const cgpaVal = m.cgpa || (6.8 + ((m.id || idx) % 25) * 0.1).toFixed(2);
+                const arrearsVal = m.arrears !== undefined ? m.arrears : ((m.id || idx) % 6 === 0 ? 1 : 0);
+                const smsMsg = encodeURIComponent(`Dear Parent, SCAD CET Mentor Update: Your ward ${m.name} (${m.regNo}) current attendance is ${attPct}%, CGPA: ${cgpaVal}. Please contact mentor.`);
 
                 return `<tr>
                     <td><strong>${m.regNo}</strong></td>
                     <td><a href="#" class="profile-btn" data-student-id="${m.id}" style="color:var(--color-primary); font-weight:600;">${m.name}</a></td>
                     <td>Year ${m.year} (${m.section})</td>
                     <td><span style="font-weight:700; color:${pctColor};">${attPct}%</span></td>
-                    <td><strong>${m.cgpa || '7.50'}</strong></td>
-                    <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears || 0}</span></td>
-                    <td><a href="tel:${parentPhoneClean}" style="color:var(--color-primary);">${m.parentPhone || '—'}</a></td>
+                    <td><strong>${cgpaVal}</strong></td>
+                    <td><span style="color:${arrearsVal > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${arrearsVal}</span></td>
+                    <td><a href="tel:${parentPhoneClean}" style="color:var(--color-primary);">${phoneStr}</a></td>
                     <td>
                         <div style="display:flex; gap:4px;">
                             <button class="btn btn--sm btn--secondary" onclick="window.location.href='tel:${parentPhoneClean}'">Call</button>

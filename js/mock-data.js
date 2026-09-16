@@ -131,12 +131,44 @@
 
   function getStudentsList() {
     let savedStudents = localStorage.getItem('scad_students');
+    const defaultStudents = generateDefaultStudents();
     if (!savedStudents) {
-      const defaultStudents = generateDefaultStudents();
       localStorage.setItem('scad_students', JSON.stringify(defaultStudents));
       return defaultStudents;
     }
-    return JSON.parse(savedStudents);
+    try {
+      let list = JSON.parse(savedStudents);
+      if (!Array.isArray(list) || list.length === 0) {
+        localStorage.setItem('scad_students', JSON.stringify(defaultStudents));
+        return defaultStudents;
+      }
+      // Schema migration: ensure mentorId, mentorName, cgpa, arrears, and parentPhone exist
+      let needsUpdate = false;
+      const defaultsMap = new Map();
+      defaultStudents.forEach(d => {
+        if (d.regNo) defaultsMap.set(d.regNo, d);
+      });
+
+      list = list.map((st, idx) => {
+        const def = defaultsMap.get(st.regNo) || defaultStudents[idx % defaultStudents.length];
+        let modified = false;
+        if (!st.mentorId && def && def.mentorId) { st.mentorId = def.mentorId; modified = true; }
+        if (!st.mentorName && def && def.mentorName) { st.mentorName = def.mentorName; modified = true; }
+        if (st.cgpa === undefined && def && def.cgpa !== undefined) { st.cgpa = def.cgpa; modified = true; }
+        if (st.arrears === undefined && def && def.arrears !== undefined) { st.arrears = def.arrears; modified = true; }
+        if (!st.parentPhone && def && def.parentPhone) { st.parentPhone = def.parentPhone; modified = true; }
+        if (modified) needsUpdate = true;
+        return st;
+      });
+
+      if (needsUpdate) {
+        localStorage.setItem('scad_students', JSON.stringify(list));
+      }
+      return list;
+    } catch (e) {
+      localStorage.setItem('scad_students', JSON.stringify(defaultStudents));
+      return defaultStudents;
+    }
   }
 
   function saveStudentsList(studentsList) {
@@ -336,7 +368,8 @@
 
   // Export to window
   window.MockData = {
-    students,
+    get students() { return getStudentsList(); },
+    get STUDENTS() { return getStudentsList(); },
     devices,
     generateGateData,
     generatePeriodAttendance,
@@ -345,13 +378,47 @@
     getStudentByRegNo,
     getStudentsList,
     saveStudentsList,
-    STUDENTS: students,
     getStudentsFiltered,
     getDeviceAlerts,
     getActiveDeviceCount,
     getMenteesForFaculty: function (facultyId) {
       const list = getStudentsList();
-      return list.filter(s => s.mentorId === facultyId || s.mentorId === (facultyId.replace('faculty_', '')));
+      const fid = facultyId || 'faculty_cse_1';
+      const shortId = fid.replace('faculty_', '');
+      let mentees = list.filter(s => s.mentorId === fid || s.mentorId === shortId);
+
+      if (mentees.length === 0) {
+        // Automatically allocate 15-18 mentees according to the faculty's role/department
+        const norm = fid.toLowerCase();
+        let matched = [];
+        if (norm.includes('math') || norm.includes('phy') || norm.includes('eng') || norm.includes('sh')) {
+          matched = list.filter(s => s.year === 'I');
+        } else if (norm.includes('cse')) {
+          matched = list.filter(s => s.department === 'CSE' && s.year !== 'I');
+        } else if (norm.includes('ece')) {
+          matched = list.filter(s => s.department === 'ECE');
+        } else if (norm.includes('eee')) {
+          matched = list.filter(s => s.department === 'EEE');
+        } else if (norm.includes('mech')) {
+          matched = list.filter(s => s.department === 'MECH');
+        } else if (norm.includes('civil')) {
+          matched = list.filter(s => s.department === 'CIVIL');
+        } else {
+          matched = list.filter(s => s.department === 'CSE');
+        }
+
+        if (matched.length === 0) matched = list.slice(0, 16);
+        const assigned = matched.slice(0, 16);
+        assigned.forEach((st, idx) => {
+          st.mentorId = fid;
+          if (!st.cgpa) st.cgpa = (6.8 + (idx % 25) * 0.1).toFixed(2);
+          if (st.arrears === undefined) st.arrears = idx % 5 === 0 ? 1 : 0;
+          if (!st.parentPhone) st.parentPhone = `+91 94432 ${String(10000 + st.id * 13).substring(0, 5)}`;
+        });
+        saveStudentsList(list);
+        mentees = assigned;
+      }
+      return mentees;
     },
     assignMentor: function (studentId, facultyId, facultyName) {
       const list = getStudentsList();
@@ -364,7 +431,7 @@
       }
       return false;
     },
-    getAllStudents: function () { return students; }
+    getAllStudents: function () { return getStudentsList(); }
   };
 
 })();
