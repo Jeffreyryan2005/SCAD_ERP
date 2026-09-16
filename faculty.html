@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Classes & Attendance — SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=35">
-    <link rel="stylesheet" href="css/base.css?v=35">
-    <link rel="stylesheet" href="css/components.css?v=35">
-    <link rel="stylesheet" href="css/layout.css?v=35">
+    <link rel="stylesheet" href="css/variables.css?v=36">
+    <link rel="stylesheet" href="css/base.css?v=36">
+    <link rel="stylesheet" href="css/components.css?v=36">
+    <link rel="stylesheet" href="css/layout.css?v=36">
     <style>
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
         #scheduleStrip { width: 100%; border-collapse: collapse; min-width: 650px; }
@@ -284,6 +284,10 @@
                         </div>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                             <span id="faculty-mentees-count" class="badge badge--present" style="font-size: 0.85rem; padding: 6px 12px;">0 Mentees</span>
+                            <button id="mentee-assign-btn" class="btn btn--sm btn--primary" style="display: flex; align-items: center; gap: 5px;" onclick="window.FacultyDashboard.openAssignMenteeModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Assign Mentee
+                            </button>
                             <button id="mentee-export-btn" class="btn btn--sm btn--outline" style="display: flex; align-items: center; gap: 5px;" onclick="window.FacultyDashboard.exportMenteesCSV()">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 Export CSV
@@ -362,12 +366,13 @@
                                     <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('att')">Attendance % <span id="sort-icon-att" class="sort-indicator">↕</span></th>
                                     <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('cgpa')">CGPA <span id="sort-icon-cgpa" class="sort-indicator">▲</span></th>
                                     <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('arrears')">Arrears <span id="sort-icon-arrears" class="sort-indicator">↕</span></th>
-                                    <th style="padding: 10px 14px;">Parent Phone</th>
-                                    <th style="padding: 10px 14px;">Parent Reachout</th>
+                                    <th style="padding: 10px 14px;">Parent Contact</th>
+                                    <th style="padding: 10px 14px;">Mentoring Status</th>
+                                    <th style="padding: 10px 14px; text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="faculty-mentees-tbody">
-                                <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
+                                <tr><td colspan="9" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading mentee records…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -572,15 +577,188 @@
         </div>
     </div>
 
+    <!-- Edit Mentee Record Modal -->
+    <div id="editMenteeModal" class="modal" style="display:none;">
+        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;" onclick="window.FacultyDashboard.closeEditMenteeModal()"></div>
+        <div class="modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--color-surface, #fff); z-index:1001; width:92%; max-width:620px; max-height:90vh; overflow-y:auto; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; font-size:1.15rem;">Edit Mentee Record</h3>
+                    <p style="margin:4px 0 0 0; font-size:0.85rem; color:var(--color-text-muted);">Update academic standing, contact details, and mentoring notes</p>
+                </div>
+                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeEditMenteeModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--color-text-muted);">&times;</button>
+            </div>
+            <form id="editMenteeForm" onsubmit="window.FacultyDashboard.saveMenteeDetails(event)">
+                <input type="hidden" id="edit-mentee-id">
+                <div class="modal-body" style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-name" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Student Name *</label>
+                            <input type="text" id="edit-mentee-name" class="form-input form-input--full" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-regno" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Register Number</label>
+                            <input type="text" id="edit-mentee-regno" class="form-input form-input--full" readonly style="background:var(--color-bg); opacity:0.8; cursor:not-allowed;">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-year" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Year</label>
+                            <select id="edit-mentee-year" class="form-input form-input--full">
+                                <option value="I">Year I</option>
+                                <option value="II">Year II</option>
+                                <option value="III">Year III</option>
+                                <option value="IV">Year IV</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-sec" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Section</label>
+                            <select id="edit-mentee-sec" class="form-input form-input--full">
+                                <option value="A">Sec A</option>
+                                <option value="B">Sec B</option>
+                                <option value="C">Sec C</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-cgpa" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">CGPA (0-10) *</label>
+                            <input type="number" id="edit-mentee-cgpa" class="form-input form-input--full" step="0.01" min="0" max="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-arrears" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Arrears *</label>
+                            <input type="number" id="edit-mentee-arrears" class="form-input form-input--full" min="0" max="30" required>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-phone" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Student Mobile</label>
+                            <input type="tel" id="edit-mentee-phone" class="form-input form-input--full" placeholder="+91 98401 00000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="edit-mentee-parent-phone" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Parent Mobile *</label>
+                            <input type="tel" id="edit-mentee-parent-phone" class="form-input form-input--full" placeholder="+91 94432 00000" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit-mentee-priority" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Mentorship Risk / Priority</label>
+                        <select id="edit-mentee-priority" class="form-input form-input--full">
+                            <option value="Normal">Normal Academic Track</option>
+                            <option value="Academic Risk">Academic Risk (Needs Tutoring / Backlogs)</option>
+                            <option value="Attendance Risk">Attendance Risk (Frequent Absences)</option>
+                            <option value="High Priority Mentoring">High Priority (Immediate Counseling Required)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit-mentee-notes" style="font-size:0.8rem; font-weight:600; margin-bottom:4px; display:block;">Mentoring Notes & Counseling Summary</label>
+                        <textarea id="edit-mentee-notes" class="form-input form-input--full" rows="3" placeholder="Enter counseling remarks, parent discussion records, or improvement targets..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; justify-content:flex-end; gap:0.5rem;">
+                    <button type="button" class="btn btn--secondary" onclick="window.FacultyDashboard.closeEditMenteeModal()">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Mentee Modal -->
+    <div id="assignMenteeModal" class="modal" style="display:none;">
+        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;" onclick="window.FacultyDashboard.closeAssignMenteeModal()"></div>
+        <div class="modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--color-surface, #fff); z-index:1001; width:92%; max-width:760px; max-height:90vh; overflow-y:auto; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; font-size:1.15rem;">Assign Mentee to Portfolio</h3>
+                    <p style="margin:4px 0 0 0; font-size:0.85rem; color:var(--color-text-muted);">Allocate unassigned or eligible students to your mentorship batch</p>
+                </div>
+                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeAssignMenteeModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--color-text-muted);">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:1.25rem 1.5rem;">
+                <!-- Filter Bar -->
+                <div style="display:flex; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap; align-items:center;">
+                    <div style="flex:1; min-width:180px;">
+                        <input type="text" id="assign-mentee-search" class="form-input form-input--sm form-input--full" placeholder="Search student name or reg no..." oninput="window.FacultyDashboard.onAssignSearch(this.value)">
+                    </div>
+                    <select id="assign-mentee-year" class="form-input form-input--sm" onchange="window.FacultyDashboard.onAssignFilterChange()">
+                        <option value="ALL">All Years</option>
+                        <option value="I">Year I</option>
+                        <option value="II">Year II</option>
+                        <option value="III">Year III</option>
+                        <option value="IV">Year IV</option>
+                    </select>
+                    <select id="assign-mentee-sec" class="form-input form-input--sm" onchange="window.FacultyDashboard.onAssignFilterChange()">
+                        <option value="ALL">All Sections</option>
+                        <option value="A">Sec A</option>
+                        <option value="B">Sec B</option>
+                        <option value="C">Sec C</option>
+                    </select>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; cursor:pointer; margin-left:4px;">
+                        <input type="checkbox" id="assign-mentee-unassigned-only" checked onchange="window.FacultyDashboard.onAssignFilterChange()">
+                        <span>Unassigned Only</span>
+                    </label>
+                </div>
+
+                <div style="font-size:0.82rem; color:var(--color-text-muted); margin-bottom:0.6rem;" id="assign-candidate-count">0 candidate students available</div>
+
+                <div class="table-responsive" style="max-height:360px; overflow-y:auto; border:1px solid var(--color-border); border-radius:8px;">
+                    <table class="attendance-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                        <thead style="position:sticky; top:0; background:var(--color-bg); border-bottom:2px solid var(--color-border); z-index:2;">
+                            <tr>
+                                <th style="padding:8px 12px;">Reg No</th>
+                                <th style="padding:8px 12px;">Student Name</th>
+                                <th style="padding:8px 12px;">Year / Sec</th>
+                                <th style="padding:8px 12px;">CGPA</th>
+                                <th style="padding:8px 12px;">Current Mentor</th>
+                                <th style="padding:8px 12px; text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignMenteeCandidatesTbody">
+                            <tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">Loading candidates...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; justify-content:flex-end;">
+                <button type="button" class="btn btn--secondary" onclick="window.FacultyDashboard.closeAssignMenteeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Remove Mentee Modal -->
+    <div id="removeMenteeModal" class="modal" style="display:none;">
+        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;" onclick="window.FacultyDashboard.closeRemoveMenteeModal()"></div>
+        <div class="modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--color-surface, #fff); z-index:1001; width:92%; max-width:440px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:1.15rem; color:#C62828;">Remove Mentee</h3>
+                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeRemoveMenteeModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--color-text-muted);">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:1.25rem 1.5rem;">
+                <input type="hidden" id="remove-mentee-id">
+                <p style="margin:0 0 1rem 0; font-size:0.92rem; line-height:1.5;">
+                    Are you sure you want to remove <strong id="remove-mentee-name">-</strong> (<span id="remove-mentee-regno">-</span>) from your mentee portfolio?
+                </p>
+                <div style="background:rgba(198,40,40,0.08); border-left:3px solid #C62828; padding:0.6rem 0.8rem; border-radius:4px; font-size:0.82rem; color:#C62828;">
+                    The student will be returned to the department unassigned pool. Attendance and academic records will remain unaffected.
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; justify-content:flex-end; gap:0.5rem;">
+                <button type="button" class="btn btn--secondary" onclick="window.FacultyDashboard.closeRemoveMenteeModal()">Cancel</button>
+                <button type="button" class="btn btn--danger" onclick="window.FacultyDashboard.executeRemoveMentee()">Remove Mentee</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=35"></script>
-    <script src="js/mock-data.js?v=35"></script>
-    <script src="js/auth.js?v=35"></script>
-    <script src="js/theme.js?v=35"></script>
-    <script src="js/reallocation.js?v=35"></script>
-    <script src="js/faculty.js?v=35"></script>
-    <script src="js/profile-modal.js?v=35"></script>
+    <script src="js/timetable.js?v=36"></script>
+    <script src="js/mock-data.js?v=36"></script>
+    <script src="js/auth.js?v=36"></script>
+    <script src="js/theme.js?v=36"></script>
+    <script src="js/reallocation.js?v=36"></script>
+    <script src="js/faculty.js?v=36"></script>
+    <script src="js/profile-modal.js?v=36"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();

@@ -349,6 +349,7 @@
                 deptFaculty = deptFaculty.filter(f => f.name.toLowerCase().includes(this.facultySearch) || (f.designation && f.designation.toLowerCase().includes(this.facultySearch)));
             }
 
+            let allSubmitted = true;
             let html = '';
             deptFaculty.forEach(faculty => {
                 let periodsHtml = '';
@@ -376,12 +377,49 @@
                     }
                 }
 
+                if (missingSubmissions) {
+                    allSubmitted = false;
+                }
+
                 if (this.facultyStatus === 'submitted' && missingSubmissions) return;
                 if (this.facultyStatus === 'pending' && !missingSubmissions) return;
 
-                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span class="badge badge--present" style="font-size:0.75rem; padding:3px 8px;">Submitted</span>';
+                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="event.stopPropagation(); window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span class="badge badge--present" style="font-size:0.75rem; padding:3px 8px;">Submitted</span>';
 
-                html += '<div class="faculty-card"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><h3 style="margin: 0 0 4px 0;">' + faculty.name + '</h3><div style="font-size: 0.85rem; color: var(--color-text-muted);">' + faculty.designation + '</div></div>' + checkIcon + '</div><div class="period-badges">' + periodsHtml + '</div></div>';
+                // Mentee statistics for this faculty
+                const menteeList = (window.MockData && window.MockData.getMenteesForFaculty) ? window.MockData.getMenteesForFaculty(faculty.id) : [];
+                const menteeCount = menteeList.length;
+                const menteeDefaulters = menteeList.filter(m => (m.attendancePct !== undefined ? m.attendancePct : 75) < 75).length;
+                const defaulterBadge = menteeDefaulters > 0
+                    ? `<span class="badge badge--absent" style="font-size:0.72rem; padding:2px 6px;">${menteeDefaulters} &lt; 75%</span>`
+                    : '<span class="badge badge--present" style="font-size:0.72rem; padding:2px 6px;">Good Track</span>';
+
+                html += `<div class="faculty-card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="window.HODDashboard.openStaffMenteesModal('${faculty.id}')">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <div>
+                            <h3 style="margin: 0 0 4px 0; color: var(--color-primary);">${faculty.name}</h3>
+                            <div style="font-size: 0.85rem; color: var(--color-text-muted);">${faculty.designation}</div>
+                        </div>
+                        <div onclick="event.stopPropagation()">${checkIcon}</div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--color-bg); padding: 6px 10px; border-radius: 6px; margin-bottom: 0.75rem; border: 1px solid var(--color-border);">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span style="font-size: 0.82rem; font-weight: 600;">${menteeCount} Mentees</span>
+                        </div>
+                        ${defaulterBadge}
+                    </div>
+
+                    <div class="period-badges" style="margin-bottom: 0.75rem;">${periodsHtml}</div>
+
+                    <div onclick="event.stopPropagation()">
+                        <button type="button" class="btn btn--sm btn--outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.8rem;" onclick="window.HODDashboard.openStaffMenteesModal('${faculty.id}')">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                            View Mentee Portfolio (${menteeCount})
+                        </button>
+                    </div>
+                </div>`;
             });
 
             if (!html) {
@@ -390,6 +428,235 @@
             }
 
             grid.innerHTML = html;
+            this.allFacultySubmitted = allSubmitted;
+        },
+
+        // ========== HOD STAFF MENTEE PORTFOLIO INSPECTION ==========
+        currentStaffModalFacultyId: null,
+        currentStaffMentees: [],
+        staffMenteeFilters: { search: '', year: 'ALL', status: 'ALL', sort: 'cgpa_desc' },
+
+        openStaffMenteesModal: function(facultyId) {
+            this.currentStaffModalFacultyId = facultyId;
+            const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+            const faculty = facList.find(f => f.id === facultyId) || { id: facultyId, name: 'Faculty Member', designation: 'Faculty', dept: this.user ? this.user.department : 'CSE' };
+
+            const nameEl = document.getElementById('hod-staff-modal-name');
+            const subEl = document.getElementById('hod-staff-modal-subtitle');
+            if (nameEl) nameEl.textContent = `${faculty.name} — Mentee Portfolio`;
+            if (subEl) subEl.textContent = `${faculty.designation} • Department of ${faculty.dept} • Staff ID: ${faculty.id}`;
+
+            // Load mentees for this faculty
+            let mentees = (window.MockData && window.MockData.getMenteesForFaculty) ? window.MockData.getMenteesForFaculty(facultyId) : [];
+
+            this.currentStaffMentees = mentees.map((m, idx) => {
+                const attPct = m.attendancePct !== undefined ? m.attendancePct : Math.round(74 + ((m.id || idx) % 24));
+                const cgpaVal = parseFloat(m.cgpa || (6.8 + ((m.id || idx) % 25) * 0.1).toFixed(2));
+                const arrearsVal = m.arrears !== undefined ? m.arrears : ((m.id || idx) % 6 === 0 ? 1 : 0);
+                const pPhone = m.parentPhone || `+91 94432 ${String(10000 + (m.id || idx) * 11).substring(0, 5)}`;
+                const notes = m.mentorNotes || 'Regular academic mentoring in progress.';
+                const priority = m.counselingPriority || ((arrearsVal > 0 || cgpaVal < 7.0 || attPct < 75) ? 'Academic Risk' : 'Normal');
+                return {
+                    ...m,
+                    attendancePct: attPct,
+                    cgpa: cgpaVal,
+                    arrears: arrearsVal,
+                    parentPhone: pPhone,
+                    mentorNotes: notes,
+                    counselingPriority: priority
+                };
+            });
+
+            // Update Metric Chips
+            const total = this.currentStaffMentees.length;
+            const defCount = this.currentStaffMentees.filter(m => m.attendancePct < 75).length;
+            const avgCgpa = total > 0 ? (this.currentStaffMentees.reduce((acc, m) => acc + m.cgpa, 0) / total).toFixed(2) : '0.00';
+            const totArrears = this.currentStaffMentees.reduce((acc, m) => acc + m.arrears, 0);
+
+            const elTotal = document.getElementById('hod-staff-stat-total');
+            const elDef = document.getElementById('hod-staff-stat-defaulters');
+            const elCgpa = document.getElementById('hod-staff-stat-cgpa');
+            const elArr = document.getElementById('hod-staff-stat-arrears');
+
+            if (elTotal) elTotal.textContent = total;
+            if (elDef) elDef.textContent = defCount;
+            if (elCgpa) elCgpa.textContent = avgCgpa;
+            if (elArr) elArr.textContent = totArrears;
+
+            // Reset filters
+            this.staffMenteeFilters = { search: '', year: 'ALL', status: 'ALL', sort: 'cgpa_desc' };
+            const sIn = document.getElementById('hod-staff-mentee-search');
+            const yEl = document.getElementById('hod-staff-mentee-year');
+            const stEl = document.getElementById('hod-staff-mentee-status');
+            const soEl = document.getElementById('hod-staff-mentee-sort');
+            if (sIn) sIn.value = '';
+            if (yEl) yEl.value = 'ALL';
+            if (stEl) stEl.value = 'ALL';
+            if (soEl) soEl.value = 'cgpa_desc';
+
+            this.renderStaffMenteesTable();
+
+            const modal = document.getElementById('hodStaffMenteesModal');
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeStaffMenteesModal: function() {
+            const modal = document.getElementById('hodStaffMenteesModal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        onStaffMenteeSearch: function(val) {
+            this.staffMenteeFilters.search = (val || '').trim().toLowerCase();
+            this.renderStaffMenteesTable();
+        },
+
+        onStaffMenteeFilterChange: function() {
+            const yEl = document.getElementById('hod-staff-mentee-year');
+            const stEl = document.getElementById('hod-staff-mentee-status');
+            if (yEl) this.staffMenteeFilters.year = yEl.value;
+            if (stEl) this.staffMenteeFilters.status = stEl.value;
+            this.renderStaffMenteesTable();
+        },
+
+        onStaffMenteeSortChange: function(sortVal) {
+            this.staffMenteeFilters.sort = sortVal;
+            this.renderStaffMenteesTable();
+        },
+
+        renderStaffMenteesTable: function() {
+            const tbody = document.getElementById('hodStaffMenteesTbody');
+            if (!tbody) return;
+
+            let list = [...this.currentStaffMentees];
+            const { search, year, status, sort } = this.staffMenteeFilters;
+
+            if (search) {
+                list = list.filter(m => (m.name && m.name.toLowerCase().includes(search)) || (m.regNo && m.regNo.toLowerCase().includes(search)));
+            }
+            if (year !== 'ALL') {
+                list = list.filter(m => m.year === year);
+            }
+            if (status === 'DEFAULTER') {
+                list = list.filter(m => m.attendancePct < 75);
+            } else if (status === 'GOOD') {
+                list = list.filter(m => m.attendancePct >= 80);
+            } else if (status === 'HAS_ARREARS') {
+                list = list.filter(m => m.arrears > 0);
+            }
+
+            list.sort((a, b) => {
+                if (sort === 'cgpa_desc') return b.cgpa - a.cgpa;
+                if (sort === 'cgpa_asc') return a.cgpa - b.cgpa;
+                if (sort === 'att_asc') return a.attendancePct - b.attendancePct;
+                if (sort === 'att_desc') return b.attendancePct - a.attendancePct;
+                if (sort === 'arrears_desc') return b.arrears - a.arrears;
+                if (sort === 'name_asc') return (a.name || '').localeCompare(b.name || '');
+                return 0;
+            });
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No mentees match the selected criteria under this staff member.</td></tr>';
+                return;
+            }
+
+            // Other faculty in department for reassigning
+            const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+            const dept = this.user ? this.user.department : 'CSE';
+            let deptFaculty = dept === 'ALL_I' ? facList.filter(f => ['MATH', 'ENG', 'PHY'].includes(f.dept)) : facList.filter(f => f.dept === dept);
+
+            tbody.innerHTML = list.map((m) => {
+                const attPct = m.attendancePct;
+                const pctColor = attPct < 75 ? '#C62828' : '#2E7D32';
+                const parentClean = (m.parentPhone || '').replace(/\s+/g, '');
+                const smsMsg = encodeURIComponent(`Dear Parent, SCAD CET HOD Office: Mentee ${m.name} (${m.regNo}) attendance is ${attPct}%, CGPA: ${Number(m.cgpa).toFixed(2)}. Please contact mentor/HOD office.`);
+
+                const priorityBadge = m.counselingPriority === 'High Priority Mentoring'
+                    ? '<span class="badge badge--absent" style="font-size:0.72rem; padding:2px 6px;">High Priority</span>'
+                    : m.counselingPriority === 'Attendance Risk'
+                    ? '<span class="badge badge--late" style="font-size:0.72rem; padding:2px 6px;">Attendance Risk</span>'
+                    : m.counselingPriority === 'Academic Risk'
+                    ? '<span class="badge badge--late" style="font-size:0.72rem; padding:2px 6px;">Academic Risk</span>'
+                    : '<span class="badge badge--present" style="font-size:0.72rem; padding:2px 6px;">Normal Track</span>';
+
+                const notesEscaped = (m.mentorNotes || '').replace(/"/g, '&quot;');
+                const notesPreview = m.mentorNotes
+                    ? `<div style="font-size:0.78rem; color:var(--color-text-muted); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${notesEscaped}">${m.mentorNotes}</div>`
+                    : '<div style="font-size:0.78rem; color:var(--color-text-muted); font-style:italic;">None recorded</div>';
+
+                // Reassign options dropdown
+                const reassignOptions = deptFaculty
+                    .filter(f => f.id !== this.currentStaffModalFacultyId)
+                    .map(f => `<option value="${f.id}">${f.name}</option>`)
+                    .join('');
+
+                return `<tr>
+                    <td><strong>${m.regNo}</strong></td>
+                    <td><a href="#" class="profile-btn" data-student-id="${m.id}" style="color:var(--color-primary); font-weight:600;">${m.name}</a></td>
+                    <td>Year ${m.year} (${m.section})</td>
+                    <td><strong style="color:${pctColor}; font-size:0.92rem;">${attPct}%</strong></td>
+                    <td><strong>${Number(m.cgpa).toFixed(2)}</strong></td>
+                    <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears}</span></td>
+                    <td><a href="tel:${parentClean}" style="color:var(--color-primary);">${m.parentPhone}</a></td>
+                    <td>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <div>${priorityBadge}</div>
+                            ${notesPreview}
+                        </div>
+                    </td>
+                    <td style="text-align:right;">
+                        <div style="display:inline-flex; gap:4px; align-items:center;">
+                            <button class="btn btn--sm btn--secondary" onclick="window.location.href='tel:${parentClean}'" title="Call parent" style="padding:3px 6px; font-size:0.78rem;">Call</button>
+                            <button class="btn btn--sm btn--outline" onclick="window.location.href='sms:${parentClean}?body=${smsMsg}'" title="SMS parent" style="padding:3px 6px; font-size:0.78rem;">SMS</button>
+                            <select class="form-input form-input--sm" style="width:auto; font-size:0.75rem; padding:2px 4px;" onchange="window.HODDashboard.handleReassignMentee('${m.id}', this.value); this.value='';">
+                                <option value="">Reassign...</option>
+                                ${reassignOptions}
+                            </select>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        },
+
+        handleReassignMentee: function(studentId, targetFacultyId) {
+            if (!targetFacultyId) return;
+            const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+            const targetFaculty = facList.find(f => f.id === targetFacultyId);
+            const targetName = targetFaculty ? targetFaculty.name : targetFacultyId;
+
+            if (!confirm(`Reassign this student to ${targetName}?`)) return;
+
+            if (window.MockData && window.MockData.reassignMentee) {
+                window.MockData.reassignMentee(studentId, targetFacultyId, targetName);
+            }
+
+            alert(`Student successfully reassigned to ${targetName}.`);
+            // Refresh modal
+            this.openStaffMenteesModal(this.currentStaffModalFacultyId);
+            // Refresh faculty cards
+            this.renderFacultyGridOnly();
+        },
+
+        exportStaffMenteesCSV: function() {
+            if (!this.currentStaffMentees || this.currentStaffMentees.length === 0) {
+                alert('No mentee data available to export.');
+                return;
+            }
+            const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+            const fac = facList.find(f => f.id === this.currentStaffModalFacultyId);
+            const facName = fac ? fac.name : 'Staff';
+
+            let csv = `Reg No,Student Name,Year,Section,Attendance (%),CGPA,Arrears,Parent Phone,Mentorship Priority,Mentoring Notes\n`;
+            this.currentStaffMentees.forEach(m => {
+                const notes = (m.mentorNotes || '').replace(/"/g, '""');
+                csv += `"${m.regNo}","${m.name}","${m.year}","${m.section}",${m.attendancePct},${Number(m.cgpa).toFixed(2)},${m.arrears},"${m.parentPhone || ''}","${m.counselingPriority || 'Normal'}","${notes}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SCAD_Mentee_Portfolio_${facName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
         },
 
         renderUnlockRequests: function() {
@@ -626,60 +893,8 @@
             this.renderODRequests();
             this.renderDiscrepancies();
 
-            const grid = document.getElementById('faculty-grid');
-            if (!grid || !window.Timetable) return;
-
-            let deptFaculty;
-            if (this.user.department === 'ALL_I') {
-                deptFaculty = window.Timetable.FACULTY.filter(f => ['MATH', 'ENG', 'PHY'].includes(f.dept));
-            } else {
-                deptFaculty = window.Timetable.FACULTY.filter(f => f.dept === this.user.department);
-            }
-
-            if (deptFaculty.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; padding: 2rem; text-align: center; color: var(--color-text-muted);">No faculty found for this department.</div>';
-                return;
-            }
-
-            let allSubmitted = true;
-            let html = '';
-
-            deptFaculty.forEach(faculty => {
-                let periodsHtml = '';
-                let missingSubmissions = false;
-
-                const schedule = window.Timetable.getFacultySchedule(faculty.id, this.currentDate);
-
-                for (let p = 1; p <= 7; p++) {
-                    const periodData = schedule[p - 1];
-                    const isFree = periodData.type === 'free';
-                    
-                    if (isFree) {
-                        periodsHtml += '<div class="period-badge" style="background: rgba(0,0,0,0.05); color: #999;" title="Period ' + p + ' - Free">P' + p + '</div>';
-                        continue;
-                    }
-
-                    const storageKey = 'scad_submitted_' + this.currentDate + '_' + faculty.id + '_' + p;
-                    const isSubmitted = localStorage.getItem(storageKey) === 'true';
-
-                    if (isSubmitted) {
-                        periodsHtml += '<div class="period-badge submitted" title="Period ' + p + ' - Submitted">P' + p + '</div>';
-                    } else {
-                        periodsHtml += '<div class="period-badge pending" title="Period ' + p + ' - Pending">P' + p + '</div>';
-                        missingSubmissions = true;
-                    }
-                }
-
-                if (missingSubmissions) {
-                    allSubmitted = false;
-                }
-
-                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span class="badge badge--present" style="font-size:0.75rem; padding:3px 8px;">Submitted</span>';
-
-                html += '<div class="faculty-card"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><h3 style="margin: 0 0 4px 0;">' + faculty.name + '</h3><div style="font-size: 0.85rem; color: var(--color-text-muted);">' + faculty.designation + '</div></div>' + checkIcon + '</div><div class="period-badges">' + periodsHtml + '</div></div>';
-            });
-
-            grid.innerHTML = html;
+            this.renderFacultyGridOnly();
+            const allSubmitted = this.allFacultySubmitted !== false;
 
             const verifiedKey = 'scad_verified_' + this.currentDate + '_' + this.user.department;
             const isVerified = localStorage.getItem(verifiedKey) === 'true';

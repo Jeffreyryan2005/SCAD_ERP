@@ -407,29 +407,103 @@
           matched = list.filter(s => s.department === 'CSE');
         }
 
-        if (matched.length === 0) matched = list.slice(0, 16);
-        const assigned = matched.slice(0, 16);
-        assigned.forEach((st, idx) => {
-          st.mentorId = fid;
-          if (!st.cgpa) st.cgpa = (6.8 + (idx % 25) * 0.1).toFixed(2);
-          if (st.arrears === undefined) st.arrears = idx % 5 === 0 ? 1 : 0;
-          if (!st.parentPhone) st.parentPhone = `+91 94432 ${String(10000 + st.id * 13).substring(0, 5)}`;
-        });
-        saveStudentsList(list);
-        mentees = assigned;
+        const seededKey = 'scad_mentees_seeded_' + fid;
+        if (!localStorage.getItem(seededKey)) {
+          if (matched.length === 0) matched = list.slice(0, 16);
+          const assigned = matched.slice(0, 16);
+          assigned.forEach((st, idx) => {
+            st.mentorId = fid;
+            if (!st.mentorName) {
+              const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+              const fac = facList.find(f => f.id === fid);
+              if (fac) st.mentorName = fac.name;
+            }
+            if (!st.cgpa) st.cgpa = (6.8 + (idx % 25) * 0.1).toFixed(2);
+            if (st.arrears === undefined) st.arrears = idx % 5 === 0 ? 1 : 0;
+            if (!st.parentPhone) st.parentPhone = `+91 94432 ${String(10000 + st.id * 13).substring(0, 5)}`;
+            if (!st.mentorNotes) st.mentorNotes = 'Regular academic mentoring in progress.';
+            if (!st.counselingPriority) st.counselingPriority = (st.arrears > 0 || (st.cgpa < 7.0)) ? 'Academic Risk' : 'Normal';
+          });
+          saveStudentsList(list);
+          localStorage.setItem(seededKey, 'true');
+          mentees = assigned;
+        }
       }
       return mentees;
     },
     assignMentor: function (studentId, facultyId, facultyName) {
+      return this.addMentee(studentId, facultyId, facultyName);
+    },
+    updateMenteeDetails: function (studentId, fields) {
       const list = getStudentsList();
       const st = list.find(s => String(s.id) === String(studentId) || s.regNo === String(studentId));
-      if (st) {
-        st.mentorId = facultyId;
-        st.mentorName = facultyName;
-        saveStudentsList(list);
-        return true;
+      if (!st) return null;
+      if (fields.name !== undefined) st.name = fields.name.trim();
+      if (fields.cgpa !== undefined) st.cgpa = parseFloat(fields.cgpa).toFixed(2);
+      if (fields.arrears !== undefined) st.arrears = parseInt(fields.arrears, 10) || 0;
+      if (fields.phone !== undefined) st.phone = fields.phone.trim();
+      if (fields.parentPhone !== undefined) st.parentPhone = fields.parentPhone.trim();
+      if (fields.mentorNotes !== undefined) st.mentorNotes = fields.mentorNotes.trim();
+      if (fields.counselingPriority !== undefined) st.counselingPriority = fields.counselingPriority;
+      if (fields.year !== undefined) st.year = fields.year;
+      if (fields.section !== undefined) st.section = fields.section;
+      saveStudentsList(list);
+      return st;
+    },
+    addMentee: function (studentId, facultyId, facultyName) {
+      const list = getStudentsList();
+      const st = list.find(s => String(s.id) === String(studentId) || s.regNo === String(studentId));
+      if (!st) return false;
+      st.mentorId = facultyId;
+      st.mentorName = facultyName;
+      if (!st.mentorNotes) st.mentorNotes = 'Assigned to mentor portfolio.';
+      if (!st.counselingPriority) st.counselingPriority = (st.arrears > 0 || (st.cgpa < 7.0)) ? 'Academic Risk' : 'Normal';
+      saveStudentsList(list);
+      // Ensure seeded key exists so it does not re-seed default 16
+      localStorage.setItem('scad_mentees_seeded_' + facultyId, 'true');
+      return st;
+    },
+    removeMentee: function (studentId) {
+      const list = getStudentsList();
+      const st = list.find(s => String(s.id) === String(studentId) || s.regNo === String(studentId));
+      if (!st) return false;
+      const prevFid = st.mentorId;
+      st.mentorId = null;
+      st.mentorName = null;
+      st.mentorNotes = '';
+      saveStudentsList(list);
+      if (prevFid) {
+        localStorage.setItem('scad_mentees_seeded_' + prevFid, 'true');
       }
-      return false;
+      return true;
+    },
+    reassignMentee: function (studentId, targetFacultyId, targetFacultyName) {
+      return this.addMentee(studentId, targetFacultyId, targetFacultyName);
+    },
+    getDepartmentStudents: function (department, excludeFacultyId) {
+      const list = getStudentsList();
+      let filtered = list;
+      if (department && department !== 'ALL') {
+        if (department === 'ALL_I') {
+          filtered = list.filter(s => s.year === 'I');
+        } else {
+          filtered = list.filter(s => s.department === department);
+        }
+      }
+      return filtered.map(s => ({
+        id: s.id,
+        regNo: s.regNo,
+        name: s.name,
+        department: s.department,
+        year: s.year,
+        section: s.section,
+        cgpa: s.cgpa || '7.50',
+        arrears: s.arrears || 0,
+        mentorId: s.mentorId || null,
+        mentorName: s.mentorName || null,
+        isAssignedToCurrent: excludeFacultyId ? (s.mentorId === excludeFacultyId) : false,
+        isUnassigned: !s.mentorId || s.mentorId === 'unassigned'
+      }));
     },
     getAllStudents: function () { return getStudentsList(); }
   };

@@ -287,22 +287,28 @@
             const fid = this.user ? (this.user.facultyId || this.user.username) : 'faculty_cse_1';
             let mentees = window.MockData.getMenteesForFaculty ? window.MockData.getMenteesForFaculty(fid) : [];
 
-            if ((!mentees || mentees.length === 0) && window.MockData.getAllStudents) {
+            if ((!mentees || mentees.length === 0) && !localStorage.getItem('scad_mentees_seeded_' + fid) && window.MockData.getAllStudents) {
                 const all = window.MockData.getAllStudents();
                 mentees = all.slice(0, 16);
             }
 
             this.menteesData = mentees.map((m, idx) => {
-                const attPct = m.attendancePct || Math.round(74 + ((m.id || idx) % 24));
+                const attPct = m.attendancePct !== undefined ? m.attendancePct : Math.round(74 + ((m.id || idx) % 24));
                 const phoneStr = m.parentPhone || `+91 94432 ${String(10000 + (m.id || idx) * 11).substring(0, 5)}`;
+                const stPhone = m.phone || `+91 98401 ${String(20000 + (m.id || idx) * 11).substring(0, 5)}`;
                 const cgpaVal = parseFloat(m.cgpa || (6.8 + ((m.id || idx) % 25) * 0.1).toFixed(2));
                 const arrearsVal = m.arrears !== undefined ? m.arrears : ((m.id || idx) % 6 === 0 ? 1 : 0);
+                const notes = m.mentorNotes || 'Regular academic mentoring in progress.';
+                const priority = m.counselingPriority || ((arrearsVal > 0 || cgpaVal < 7.0 || attPct < 75) ? 'Academic Risk' : 'Normal');
                 return {
                     ...m,
                     attendancePct: attPct,
+                    phone: stPhone,
                     parentPhone: phoneStr,
                     cgpa: cgpaVal,
-                    arrears: arrearsVal
+                    arrears: arrearsVal,
+                    mentorNotes: notes,
+                    counselingPriority: priority
                 };
             });
 
@@ -380,16 +386,29 @@
             this.updateMenteeSortIcons(sort);
 
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No mentees matching current filters. <button class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.resetMenteeFilters()" style="margin-left:8px;">Reset Filters</button></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No mentees matching current filters. <button class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.resetMenteeFilters()" style="margin-left:8px;">Reset Filters</button></td></tr>';
                 return;
             }
 
             tbody.innerHTML = list.map((m) => {
                 const attPct = m.attendancePct;
                 const pctColor = attPct < 75 ? '#C62828' : '#2E7D32';
-                const parentPhoneClean = m.parentPhone.replace(/\s+/g, '');
+                const parentPhoneClean = (m.parentPhone || '').replace(/\s+/g, '');
                 const cgpaFormatted = Number(m.cgpa).toFixed(2);
                 const smsMsg = encodeURIComponent(`Dear Parent, SCAD CET Mentor Update: Your ward ${m.name} (${m.regNo}) current attendance is ${attPct}%, CGPA: ${cgpaFormatted}, Arrears: ${m.arrears}. Please contact mentor.`);
+
+                const priorityBadge = m.counselingPriority === 'High Priority Mentoring'
+                    ? '<span class="badge badge--absent" style="font-size:0.75rem; padding:2px 6px;">High Priority</span>'
+                    : m.counselingPriority === 'Attendance Risk'
+                    ? '<span class="badge badge--late" style="font-size:0.75rem; padding:2px 6px;">Attendance Risk</span>'
+                    : m.counselingPriority === 'Academic Risk'
+                    ? '<span class="badge badge--late" style="font-size:0.75rem; padding:2px 6px;">Academic Risk</span>'
+                    : '<span class="badge badge--present" style="font-size:0.75rem; padding:2px 6px;">Normal Track</span>';
+
+                const notesEscaped = (m.mentorNotes || '').replace(/"/g, '&quot;');
+                const notesPreview = m.mentorNotes
+                    ? `<div style="font-size:0.78rem; color:var(--color-text-muted); max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${notesEscaped}">${m.mentorNotes}</div>`
+                    : '<div style="font-size:0.78rem; color:var(--color-text-muted); font-style:italic;">No notes recorded</div>';
 
                 return `<tr>
                     <td><strong>${m.regNo}</strong></td>
@@ -400,9 +419,17 @@
                     <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears}</span></td>
                     <td><a href="tel:${parentPhoneClean}" style="color:var(--color-primary);">${m.parentPhone}</a></td>
                     <td>
-                        <div style="display:flex; gap:4px;">
-                            <button class="btn btn--sm btn--secondary" onclick="window.location.href='tel:${parentPhoneClean}'">Call</button>
-                            <button class="btn btn--sm btn--outline" onclick="window.location.href='sms:${parentPhoneClean}?body=${smsMsg}'">SMS</button>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <div>${priorityBadge}</div>
+                            ${notesPreview}
+                        </div>
+                    </td>
+                    <td style="text-align:right;">
+                        <div style="display:inline-flex; gap:4px; align-items:center;">
+                            <button class="btn btn--sm btn--primary" onclick="window.FacultyDashboard.openEditMenteeModal('${m.id}')" title="Edit mentee details" style="padding:4px 8px; font-size:0.8rem;">Edit</button>
+                            <button class="btn btn--sm btn--secondary" onclick="window.location.href='tel:${parentPhoneClean}'" title="Call parent" style="padding:4px 8px; font-size:0.8rem;">Call</button>
+                            <button class="btn btn--sm btn--outline" onclick="window.location.href='sms:${parentPhoneClean}?body=${smsMsg}'" title="SMS parent" style="padding:4px 8px; font-size:0.8rem;">SMS</button>
+                            <button class="btn btn--sm btn--danger" onclick="window.FacultyDashboard.confirmRemoveMentee('${m.id}')" title="Remove mentee from portfolio" style="padding:4px 8px; font-size:0.8rem;">Remove</button>
                         </div>
                     </td>
                 </tr>`;
@@ -512,9 +539,10 @@
                 alert('No mentee data available to export.');
                 return;
             }
-            let csv = 'Reg No,Student Name,Year,Section,Attendance (%),CGPA,Arrears,Parent Phone\n';
+            let csv = 'Reg No,Student Name,Year,Section,Attendance (%),CGPA,Arrears,Student Phone,Parent Phone,Mentorship Priority,Mentoring Notes\n';
             this.menteesData.forEach(m => {
-                csv += `"${m.regNo}","${m.name}","${m.year}","${m.section}",${m.attendancePct},${Number(m.cgpa).toFixed(2)},${m.arrears},"${m.parentPhone}"\n`;
+                const notes = (m.mentorNotes || '').replace(/"/g, '""');
+                csv += `"${m.regNo}","${m.name}","${m.year}","${m.section}",${m.attendancePct},${Number(m.cgpa).toFixed(2)},${m.arrears},"${m.phone || ''}","${m.parentPhone || ''}","${m.counselingPriority || 'Normal'}","${notes}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -523,6 +551,229 @@
             a.download = `SCAD_Mentees_${(this.user ? this.user.name : 'Faculty').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
+        },
+
+        // ========== MENTEE MANAGEMENT: EDIT, ASSIGN, REMOVE ==========
+        openEditMenteeModal: function(studentId) {
+            const student = this.menteesData.find(m => String(m.id) === String(studentId));
+            if (!student) return;
+
+            document.getElementById('edit-mentee-id').value = student.id;
+            document.getElementById('edit-mentee-name').value = student.name || '';
+            document.getElementById('edit-mentee-regno').value = student.regNo || '';
+            document.getElementById('edit-mentee-year').value = student.year || 'III';
+            document.getElementById('edit-mentee-sec').value = student.section || 'A';
+            document.getElementById('edit-mentee-cgpa').value = Number(student.cgpa || 7.0).toFixed(2);
+            document.getElementById('edit-mentee-arrears').value = student.arrears !== undefined ? student.arrears : 0;
+            document.getElementById('edit-mentee-phone').value = student.phone || '';
+            document.getElementById('edit-mentee-parent-phone').value = student.parentPhone || '';
+            document.getElementById('edit-mentee-priority').value = student.counselingPriority || 'Normal';
+            document.getElementById('edit-mentee-notes').value = student.mentorNotes || '';
+
+            const modal = document.getElementById('editMenteeModal');
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeEditMenteeModal: function() {
+            const modal = document.getElementById('editMenteeModal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        saveMenteeDetails: function(e) {
+            if (e) e.preventDefault();
+            const id = document.getElementById('edit-mentee-id').value;
+            const name = document.getElementById('edit-mentee-name').value;
+            const year = document.getElementById('edit-mentee-year').value;
+            const section = document.getElementById('edit-mentee-sec').value;
+            const cgpa = parseFloat(document.getElementById('edit-mentee-cgpa').value);
+            const arrears = parseInt(document.getElementById('edit-mentee-arrears').value, 10);
+            const phone = document.getElementById('edit-mentee-phone').value;
+            const parentPhone = document.getElementById('edit-mentee-parent-phone').value;
+            const priority = document.getElementById('edit-mentee-priority').value;
+            const notes = document.getElementById('edit-mentee-notes').value;
+
+            if (isNaN(cgpa) || cgpa < 0 || cgpa > 10) {
+                alert('Please enter a valid CGPA between 0.00 and 10.00');
+                return;
+            }
+            if (isNaN(arrears) || arrears < 0) {
+                alert('Please enter a valid non-negative arrears count');
+                return;
+            }
+
+            if (window.MockData && window.MockData.updateMenteeDetails) {
+                window.MockData.updateMenteeDetails(id, {
+                    name: name,
+                    year: year,
+                    section: section,
+                    cgpa: cgpa,
+                    arrears: arrears,
+                    phone: phone,
+                    parentPhone: parentPhone,
+                    counselingPriority: priority,
+                    mentorNotes: notes
+                });
+            }
+
+            this.closeEditMenteeModal();
+            this.showToast('Mentee details saved successfully.');
+            this.renderMyMentees();
+        },
+
+        assignCandidates: [],
+        assignCandidateFilters: { search: '', year: 'ALL', sec: 'ALL', unassignedOnly: true },
+
+        openAssignMenteeModal: function() {
+            const dept = (this.user && this.user.department) ? this.user.department : 'CSE';
+            const fid = this.user ? (this.user.facultyId || this.user.username) : 'faculty_cse_1';
+
+            if (window.MockData && window.MockData.getDepartmentStudents) {
+                this.assignCandidates = window.MockData.getDepartmentStudents(dept, fid);
+            } else {
+                this.assignCandidates = [];
+            }
+
+            this.assignCandidateFilters = { search: '', year: 'ALL', sec: 'ALL', unassignedOnly: true };
+            const sIn = document.getElementById('assign-mentee-search');
+            const yEl = document.getElementById('assign-mentee-year');
+            const secEl = document.getElementById('assign-mentee-sec');
+            const unEl = document.getElementById('assign-mentee-unassigned-only');
+            if (sIn) sIn.value = '';
+            if (yEl) yEl.value = 'ALL';
+            if (secEl) secEl.value = 'ALL';
+            if (unEl) unEl.checked = true;
+
+            this.renderAssignCandidates();
+            const modal = document.getElementById('assignMenteeModal');
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeAssignMenteeModal: function() {
+            const modal = document.getElementById('assignMenteeModal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        onAssignSearch: function(val) {
+            this.assignCandidateFilters.search = (val || '').trim().toLowerCase();
+            this.renderAssignCandidates();
+        },
+
+        onAssignFilterChange: function() {
+            const yEl = document.getElementById('assign-mentee-year');
+            const secEl = document.getElementById('assign-mentee-sec');
+            const unEl = document.getElementById('assign-mentee-unassigned-only');
+            if (yEl) this.assignCandidateFilters.year = yEl.value;
+            if (secEl) this.assignCandidateFilters.sec = secEl.value;
+            if (unEl) this.assignCandidateFilters.unassignedOnly = unEl.checked;
+            this.renderAssignCandidates();
+        },
+
+        renderAssignCandidates: function() {
+            const tbody = document.getElementById('assignMenteeCandidatesTbody');
+            const countEl = document.getElementById('assign-candidate-count');
+            if (!tbody) return;
+
+            const { search, year, sec, unassignedOnly } = this.assignCandidateFilters;
+            let list = [...this.assignCandidates];
+
+            // Don't show already assigned to current faculty
+            list = list.filter(c => !c.isAssignedToCurrent);
+
+            if (unassignedOnly) {
+                list = list.filter(c => c.isUnassigned);
+            }
+            if (search) {
+                list = list.filter(c => c.name.toLowerCase().includes(search) || c.regNo.toLowerCase().includes(search));
+            }
+            if (year !== 'ALL') {
+                list = list.filter(c => c.year === year);
+            }
+            if (sec !== 'ALL') {
+                list = list.filter(c => c.section === sec);
+            }
+
+            if (countEl) countEl.textContent = `${list.length} candidate students available`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No candidate students match the selected filters.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = list.map(s => {
+                const mentorDisplay = s.mentorName
+                    ? `<span style="color:var(--color-text-muted); font-size:0.8rem;">${s.mentorName}</span>`
+                    : '<span class="badge badge--late" style="font-size:0.75rem; padding:2px 6px;">Unassigned</span>';
+
+                return `<tr>
+                    <td><strong>${s.regNo}</strong></td>
+                    <td><strong>${s.name}</strong></td>
+                    <td>Year ${s.year} (${s.section})</td>
+                    <td>${Number(s.cgpa).toFixed(2)}</td>
+                    <td>${mentorDisplay}</td>
+                    <td style="text-align:right;">
+                        <button type="button" class="btn btn--sm btn--primary" onclick="window.FacultyDashboard.executeAssignMentee('${s.id}')" style="padding:4px 10px; font-size:0.8rem;">Assign</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        },
+
+        executeAssignMentee: function(studentId) {
+            const fid = this.user ? (this.user.facultyId || this.user.username) : 'faculty_cse_1';
+            const fname = this.user ? this.user.name : 'Faculty Mentor';
+
+            if (window.MockData && window.MockData.addMentee) {
+                window.MockData.addMentee(studentId, fid, fname);
+            }
+
+            this.showToast('Student assigned to your mentee portfolio.');
+            this.renderMyMentees();
+
+            // Refresh candidate list
+            const dept = (this.user && this.user.department) ? this.user.department : 'CSE';
+            if (window.MockData && window.MockData.getDepartmentStudents) {
+                this.assignCandidates = window.MockData.getDepartmentStudents(dept, fid);
+            }
+            this.renderAssignCandidates();
+        },
+
+        confirmRemoveMentee: function(studentId) {
+            const student = this.menteesData.find(m => String(m.id) === String(studentId));
+            if (!student) return;
+
+            document.getElementById('remove-mentee-id').value = student.id;
+            document.getElementById('remove-mentee-name').textContent = student.name;
+            document.getElementById('remove-mentee-regno').textContent = student.regNo;
+
+            const modal = document.getElementById('removeMenteeModal');
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeRemoveMenteeModal: function() {
+            const modal = document.getElementById('removeMenteeModal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        executeRemoveMentee: function() {
+            const id = document.getElementById('remove-mentee-id').value;
+            if (!id) return;
+
+            if (window.MockData && window.MockData.removeMentee) {
+                window.MockData.removeMentee(id);
+            }
+
+            this.closeRemoveMenteeModal();
+            this.showToast('Student removed from mentee portfolio.');
+            this.renderMyMentees();
+        },
+
+        showToast: function(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
         },
 
         onPeriodStudentSearch: function(query) {
