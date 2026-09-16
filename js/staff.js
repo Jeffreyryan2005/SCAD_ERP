@@ -2,6 +2,8 @@
     'use strict';
 
     window.StaffManager = {
+        currentSort: 'name_asc',
+        lastFiltered: [],
         
         openMenteesModal: function(staffId) {
             const staffList = this.getStaffList();
@@ -78,6 +80,15 @@
             const roleFilter = document.getElementById('filterRole');
             if (roleFilter) roleFilter.addEventListener('change', () => this.renderTable());
 
+            const sortSelect = document.getElementById('sortStaff');
+            if (sortSelect) sortSelect.addEventListener('change', (e) => {
+                this.currentSort = e.target.value;
+                this.renderTable();
+            });
+
+            const exportBtn = document.getElementById('exportStaffBtn');
+            if (exportBtn) exportBtn.addEventListener('click', () => this.exportCSV());
+
             // Modal setup
             const addBtn = document.getElementById('addStaffBtn');
             if (addBtn) addBtn.addEventListener('click', () => this.openModal());
@@ -136,7 +147,7 @@
             if (!tbody) return;
 
             const searchEl = document.getElementById('searchInput');
-            const search = searchEl ? searchEl.value.toLowerCase() : '';
+            const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
             
             const deptEl = document.getElementById('filterDept');
             const dept = deptEl ? deptEl.value : '';
@@ -144,7 +155,7 @@
             const roleEl = document.getElementById('filterRole');
             const roleFilter = roleEl ? roleEl.value : '';
             
-            const filtered = (this.staffList || []).filter(s => {
+            let filtered = (this.staffList || []).filter(s => {
                 // Role-based filtering
                 if (this.user.role === 'hod') {
                     if (s.role !== 'faculty') return false;
@@ -167,6 +178,27 @@
                 return matchSearch && matchDept && matchRole;
             });
 
+            this.lastFiltered = filtered;
+
+            // Sort
+            filtered.sort((a, b) => {
+                switch (this.currentSort) {
+                    case 'name_asc': return (a.name || '').localeCompare(b.name || '');
+                    case 'name_desc': return (b.name || '').localeCompare(a.name || '');
+                    case 'user_asc': return (a.username || '').localeCompare(b.username || '');
+                    case 'dept_asc': return (a.department || '').localeCompare(b.department || '');
+                    case 'role_asc': return (a.role || '').localeCompare(b.role || '');
+                    default: return (a.name || '').localeCompare(b.name || '');
+                }
+            });
+
+            this.updateSortIcons();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--color-text-muted);">No staff found matching filters.</td></tr>';
+                return;
+            }
+
             let html = '';
             filtered.forEach(s => {
                 const roleColor = s.role === 'hod' ? '#1565C0' : '#2E7D32';
@@ -184,11 +216,56 @@
                 </tr>`;
             });
             
-            if (filtered.length === 0) {
-                html = '<tr><td colspan="6" style="text-align:center">No staff found</td></tr>';
-            }
-            
             tbody.innerHTML = html;
+        },
+
+        toggleSort: function(field) {
+            if (field === 'user') {
+                this.currentSort = this.currentSort === 'user_asc' ? 'user_desc' : 'user_asc';
+            } else if (field === 'name') {
+                this.currentSort = this.currentSort === 'name_asc' ? 'name_desc' : 'name_asc';
+            } else if (field === 'dept') {
+                this.currentSort = this.currentSort === 'dept_asc' ? 'dept_desc' : 'dept_asc';
+            } else if (field === 'role') {
+                this.currentSort = this.currentSort === 'role_asc' ? 'role_desc' : 'role_asc';
+            }
+            const sel = document.getElementById('sortStaff');
+            if (sel) sel.value = this.currentSort;
+            this.renderTable();
+        },
+
+        updateSortIcons: function() {
+            const s = this.currentSort;
+            const setI = (id, asc, desc) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = s === asc ? '▲' : s === desc ? '▼' : '↕';
+            };
+            setI('stsort-user', 'user_asc', 'user_desc');
+            setI('stsort-name', 'name_asc', 'name_desc');
+            setI('stsort-dept', 'dept_asc', 'dept_desc');
+            setI('stsort-role', 'role_asc', 'role_desc');
+        },
+
+        exportCSV: function() {
+            const list = this.lastFiltered || this.staffList || [];
+            if (list.length === 0) {
+                alert('No staff records to export.');
+                return;
+            }
+            let csv = 'Username,Name,Department,Designation,Role\n';
+            list.forEach(s => {
+                csv += `"${s.username || ''}","${(s.name || '').replace(/"/g, '""')}","${s.department || ''}","${s.designation || ''}","${s.role || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `staff_list_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         },
 
         openModal: function(id = null) {

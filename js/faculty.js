@@ -269,9 +269,19 @@
             this.loadSchedule();
         },
 
+        menteesData: [],
+        menteeFilters: {
+            search: '',
+            year: 'ALL',
+            att: 'ALL',
+            arrears: 'ALL',
+            sort: 'cgpa_desc'
+        },
+        periodFilterStatus: 'ALL',
+        periodSearchQuery: '',
+
         renderMyMentees: function() {
             const tbody = document.getElementById('faculty-mentees-tbody');
-            const badge = document.getElementById('faculty-mentees-count');
             if (!tbody || !window.MockData) return;
 
             const fid = this.user ? (this.user.facultyId || this.user.username) : 'faculty_cse_1';
@@ -282,30 +292,113 @@
                 mentees = all.slice(0, 16);
             }
 
-            if (badge) badge.textContent = `${mentees.length} Mentees`;
+            this.menteesData = mentees.map((m, idx) => {
+                const attPct = m.attendancePct || Math.round(74 + ((m.id || idx) % 24));
+                const phoneStr = m.parentPhone || `+91 94432 ${String(10000 + (m.id || idx) * 11).substring(0, 5)}`;
+                const cgpaVal = parseFloat(m.cgpa || (6.8 + ((m.id || idx) % 25) * 0.1).toFixed(2));
+                const arrearsVal = m.arrears !== undefined ? m.arrears : ((m.id || idx) % 6 === 0 ? 1 : 0);
+                return {
+                    ...m,
+                    attendancePct: attPct,
+                    parentPhone: phoneStr,
+                    cgpa: cgpaVal,
+                    arrears: arrearsVal
+                };
+            });
 
-            if (mentees.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No mentees assigned to your profile yet.</td></tr>';
+            // Update Summary Stats Pills
+            const total = this.menteesData.length;
+            const defaulters = this.menteesData.filter(m => m.attendancePct < 75).length;
+            const topCgpa = this.menteesData.filter(m => m.cgpa >= 8.0).length;
+            const withArrears = this.menteesData.filter(m => m.arrears > 0).length;
+
+            const elTotal = document.getElementById('mentee-stat-total');
+            const elDef = document.getElementById('mentee-stat-defaulters');
+            const elCgpa = document.getElementById('mentee-stat-high-cgpa');
+            const elArr = document.getElementById('mentee-stat-arrears');
+
+            if (elTotal) elTotal.textContent = total;
+            if (elDef) elDef.textContent = defaulters;
+            if (elCgpa) elCgpa.textContent = topCgpa;
+            if (elArr) elArr.textContent = withArrears;
+
+            this.applyMenteeFilteringAndRendering();
+        },
+
+        applyMenteeFilteringAndRendering: function() {
+            const tbody = document.getElementById('faculty-mentees-tbody');
+            const badge = document.getElementById('faculty-mentees-count');
+            if (!tbody) return;
+
+            let list = [...this.menteesData];
+            const { search, year, att, arrears, sort } = this.menteeFilters;
+
+            // Search filter
+            if (search) {
+                const q = search.toLowerCase();
+                list = list.filter(m => (m.name && m.name.toLowerCase().includes(q)) || (m.regNo && m.regNo.toLowerCase().includes(q)));
+            }
+
+            // Year filter
+            if (year !== 'ALL') {
+                list = list.filter(m => m.year === year);
+            }
+
+            // Attendance category filter
+            if (att === 'DEFAULTER') {
+                list = list.filter(m => m.attendancePct < 75);
+            } else if (att === 'BORDERLINE') {
+                list = list.filter(m => m.attendancePct >= 75 && m.attendancePct <= 80);
+            } else if (att === 'GOOD') {
+                list = list.filter(m => m.attendancePct >= 80);
+            }
+
+            // Arrears filter
+            if (arrears === 'HAS_ARREARS') {
+                list = list.filter(m => m.arrears > 0);
+            } else if (arrears === 'CLEAR') {
+                list = list.filter(m => m.arrears === 0);
+            }
+
+            // Sorting logic
+            list.sort((a, b) => {
+                if (sort === 'cgpa_desc') return b.cgpa - a.cgpa;
+                if (sort === 'cgpa_asc') return a.cgpa - b.cgpa;
+                if (sort === 'att_asc') return a.attendancePct - b.attendancePct;
+                if (sort === 'att_desc') return b.attendancePct - a.attendancePct;
+                if (sort === 'arrears_desc') return b.arrears - a.arrears;
+                if (sort === 'arrears_asc') return a.arrears - b.arrears;
+                if (sort === 'name_asc') return (a.name || '').localeCompare(b.name || '');
+                if (sort === 'name_desc') return (b.name || '').localeCompare(a.name || '');
+                if (sort === 'reg_asc') return (a.regNo || '').localeCompare(b.regNo || '');
+                if (sort === 'reg_desc') return (b.regNo || '').localeCompare(a.regNo || '');
+                return 0;
+            });
+
+            if (badge) badge.textContent = `${list.length} / ${this.menteesData.length} Mentees`;
+
+            this.updateMenteeSortIcons(sort);
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No mentees matching current filters. <button class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.resetMenteeFilters()" style="margin-left:8px;">Reset Filters</button></td></tr>';
                 return;
             }
 
-            tbody.innerHTML = mentees.map((m, idx) => {
-                const attPct = m.attendancePct || Math.round(74 + ((m.id || idx) % 24));
+            tbody.innerHTML = list.map((m) => {
+                const attPct = m.attendancePct;
                 const pctColor = attPct < 75 ? '#C62828' : '#2E7D32';
-                const phoneStr = m.parentPhone || `+91 94432 ${String(10000 + (m.id || idx) * 11).substring(0, 5)}`;
-                const parentPhoneClean = phoneStr.replace(/\s+/g, '');
-                const cgpaVal = m.cgpa || (6.8 + ((m.id || idx) % 25) * 0.1).toFixed(2);
-                const arrearsVal = m.arrears !== undefined ? m.arrears : ((m.id || idx) % 6 === 0 ? 1 : 0);
-                const smsMsg = encodeURIComponent(`Dear Parent, SCAD CET Mentor Update: Your ward ${m.name} (${m.regNo}) current attendance is ${attPct}%, CGPA: ${cgpaVal}. Please contact mentor.`);
+                const parentPhoneClean = m.parentPhone.replace(/\s+/g, '');
+                const cgpaFormatted = Number(m.cgpa).toFixed(2);
+                const smsMsg = encodeURIComponent(`Dear Parent, SCAD CET Mentor Update: Your ward ${m.name} (${m.regNo}) current attendance is ${attPct}%, CGPA: ${cgpaFormatted}, Arrears: ${m.arrears}. Please contact mentor.`);
 
                 return `<tr>
                     <td><strong>${m.regNo}</strong></td>
                     <td><a href="#" class="profile-btn" data-student-id="${m.id}" style="color:var(--color-primary); font-weight:600;">${m.name}</a></td>
                     <td>Year ${m.year} (${m.section})</td>
-                    <td><span style="font-weight:700; color:${pctColor};">${attPct}%</span></td>
-                    <td><strong>${cgpaVal}</strong></td>
-                    <td><span style="color:${arrearsVal > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${arrearsVal}</span></td>
-                    <td><a href="tel:${parentPhoneClean}" style="color:var(--color-primary);">${phoneStr}</a></td>
+                    <td><span style="font-weight:700; color:${pctColor}; font-size:0.95rem;">${attPct}%</span></td>
+                    <td><strong style="color:${m.cgpa >= 8.0 ? '#2E7D32' : 'inherit'};">${cgpaFormatted}</strong></td>
+                    <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears}</span></td>
+                    <td><a href="tel:${parentPhoneClean}" style="color:var(--color-primary);">${m.parentPhone}</a></td>
                     <td>
                         <div style="display:flex; gap:4px;">
                             <button class="btn btn--sm btn--secondary" onclick="window.location.href='tel:${parentPhoneClean}'">Call</button>
@@ -314,6 +407,161 @@
                     </td>
                 </tr>`;
             }).join('');
+        },
+
+        updateMenteeSortIcons: function(sort) {
+            const icons = {
+                regNo: document.getElementById('sort-icon-regNo'),
+                name: document.getElementById('sort-icon-name'),
+                year: document.getElementById('sort-icon-year'),
+                att: document.getElementById('sort-icon-att'),
+                cgpa: document.getElementById('sort-icon-cgpa'),
+                arrears: document.getElementById('sort-icon-arrears')
+            };
+            Object.values(icons).forEach(icon => { if (icon) icon.textContent = '↕'; });
+            if (sort === 'cgpa_desc' && icons.cgpa) icons.cgpa.textContent = '▼';
+            else if (sort === 'cgpa_asc' && icons.cgpa) icons.cgpa.textContent = '▲';
+            else if (sort === 'att_asc' && icons.att) icons.att.textContent = '▲';
+            else if (sort === 'att_desc' && icons.att) icons.att.textContent = '▼';
+            else if (sort === 'arrears_desc' && icons.arrears) icons.arrears.textContent = '▼';
+            else if (sort === 'name_asc' && icons.name) icons.name.textContent = '▲';
+            else if (sort === 'name_desc' && icons.name) icons.name.textContent = '▼';
+            else if (sort === 'reg_asc' && icons.regNo) icons.regNo.textContent = '▲';
+            else if (sort === 'reg_desc' && icons.regNo) icons.regNo.textContent = '▼';
+        },
+
+        onMenteeSearch: function(val) {
+            this.menteeFilters.search = (val || '').trim();
+            this.applyMenteeFilteringAndRendering();
+        },
+
+        onMenteeFilterChange: function() {
+            const yEl = document.getElementById('mentee-year-filter');
+            const aEl = document.getElementById('mentee-att-filter');
+            const arrEl = document.getElementById('mentee-arrears-filter');
+            if (yEl) this.menteeFilters.year = yEl.value;
+            if (aEl) this.menteeFilters.att = aEl.value;
+            if (arrEl) this.menteeFilters.arrears = arrEl.value;
+            this.applyMenteeFilteringAndRendering();
+        },
+
+        onMenteeSortChange: function(val) {
+            this.menteeFilters.sort = val;
+            this.applyMenteeFilteringAndRendering();
+        },
+
+        toggleMenteeHeaderSort: function(field) {
+            const select = document.getElementById('mentee-sort-select');
+            let nextSort = 'cgpa_desc';
+            if (field === 'cgpa') {
+                nextSort = this.menteeFilters.sort === 'cgpa_desc' ? 'cgpa_asc' : 'cgpa_desc';
+            } else if (field === 'att') {
+                nextSort = this.menteeFilters.sort === 'att_asc' ? 'att_desc' : 'att_asc';
+            } else if (field === 'arrears') {
+                nextSort = this.menteeFilters.sort === 'arrears_desc' ? 'arrears_asc' : 'arrears_desc';
+            } else if (field === 'name') {
+                nextSort = this.menteeFilters.sort === 'name_asc' ? 'name_desc' : 'name_asc';
+            } else if (field === 'regNo') {
+                nextSort = this.menteeFilters.sort === 'reg_asc' ? 'reg_desc' : 'reg_asc';
+            }
+            this.menteeFilters.sort = nextSort;
+            if (select) select.value = nextSort;
+            this.applyMenteeFilteringAndRendering();
+        },
+
+        setMenteeFilter: function(category) {
+            const aEl = document.getElementById('mentee-att-filter');
+            const arrEl = document.getElementById('mentee-arrears-filter');
+            const sEl = document.getElementById('mentee-sort-select');
+            this.resetMenteeFilters(false);
+
+            if (category === 'DEFAULTER') {
+                this.menteeFilters.att = 'DEFAULTER';
+                this.menteeFilters.sort = 'att_asc';
+                if (aEl) aEl.value = 'DEFAULTER';
+                if (sEl) sEl.value = 'att_asc';
+            } else if (category === 'TOP_CGPA') {
+                this.menteeFilters.sort = 'cgpa_desc';
+                if (sEl) sEl.value = 'cgpa_desc';
+            } else if (category === 'HAS_ARREARS') {
+                this.menteeFilters.arrears = 'HAS_ARREARS';
+                this.menteeFilters.sort = 'arrears_desc';
+                if (arrEl) arrEl.value = 'HAS_ARREARS';
+                if (sEl) sEl.value = 'arrears_desc';
+            }
+            this.applyMenteeFilteringAndRendering();
+        },
+
+        resetMenteeFilters: function(render = true) {
+            this.menteeFilters = { search: '', year: 'ALL', att: 'ALL', arrears: 'ALL', sort: 'cgpa_desc' };
+            const sIn = document.getElementById('mentee-search-input');
+            const yEl = document.getElementById('mentee-year-filter');
+            const aEl = document.getElementById('mentee-att-filter');
+            const arrEl = document.getElementById('mentee-arrears-filter');
+            const sEl = document.getElementById('mentee-sort-select');
+            if (sIn) sIn.value = '';
+            if (yEl) yEl.value = 'ALL';
+            if (aEl) aEl.value = 'ALL';
+            if (arrEl) arrEl.value = 'ALL';
+            if (sEl) sEl.value = 'cgpa_desc';
+            if (render) this.applyMenteeFilteringAndRendering();
+        },
+
+        exportMenteesCSV: function() {
+            if (!this.menteesData || this.menteesData.length === 0) {
+                alert('No mentee data available to export.');
+                return;
+            }
+            let csv = 'Reg No,Student Name,Year,Section,Attendance (%),CGPA,Arrears,Parent Phone\n';
+            this.menteesData.forEach(m => {
+                csv += `"${m.regNo}","${m.name}","${m.year}","${m.section}",${m.attendancePct},${Number(m.cgpa).toFixed(2)},${m.arrears},"${m.parentPhone}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SCAD_Mentees_${(this.user ? this.user.name : 'Faculty').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+
+        onPeriodStudentSearch: function(query) {
+            this.periodSearchQuery = (query || '').trim().toLowerCase();
+            this.renderAttendanceTable();
+        },
+
+        filterPeriodStatus: function(status) {
+            this.periodFilterStatus = status;
+            ['all', 'present', 'absent', 'od'].forEach(s => {
+                const btn = document.getElementById(`filter-btn-${s}`);
+                if (btn) {
+                    if (s.toUpperCase() === status.toUpperCase() || (s === 'all' && status === 'ALL')) {
+                        btn.className = 'btn btn--sm btn--primary';
+                    } else {
+                        btn.className = 'btn btn--sm btn--outline';
+                    }
+                }
+            });
+            this.renderAttendanceTable();
+        },
+
+        markAllAbsent: function() {
+            this.studentsList.forEach(s => {
+                this.attendanceState[s.id] = 'absent';
+                delete this.odRemarksState[s.id];
+            });
+            this.updateSummary();
+            this.renderAttendanceTable();
+        },
+
+        invertAttendance: function() {
+            this.studentsList.forEach(s => {
+                const current = this.attendanceState[s.id] || 'present';
+                if (current === 'present') this.attendanceState[s.id] = 'absent';
+                else if (current === 'absent') this.attendanceState[s.id] = 'present';
+            });
+            this.updateSummary();
+            this.renderAttendanceTable();
         },
 
         startClock: function() {
@@ -711,8 +959,26 @@
             const isHODUnlocked = lockStatus.isHODUnlocked;
             const hasSavedData = storageKey ? (localStorage.getItem(storageKey) !== null) : false;
             const isMarked = hasSavedData && !isHODUnlocked;
+            let displayList = this.studentsList;
+            if (this.periodSearchQuery) {
+                displayList = displayList.filter(s =>
+                    (s.name && s.name.toLowerCase().includes(this.periodSearchQuery)) ||
+                    (s.regNo && s.regNo.toLowerCase().includes(this.periodSearchQuery))
+                );
+            }
+            if (this.periodFilterStatus && this.periodFilterStatus !== 'ALL') {
+                displayList = displayList.filter(s => {
+                    const st = this.attendanceState[s.id] || 'present';
+                    return st.toLowerCase() === this.periodFilterStatus.toLowerCase();
+                });
+            }
 
-            this.studentsList.forEach((student, index) => {
+            if (displayList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No students matching current filter.</td></tr>';
+                return;
+            }
+
+            displayList.forEach((student, index) => {
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = "1px solid var(--border-color)";
                 

@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Management - SCAD</title>
-    <link rel="stylesheet" href="css/variables.css?v=33">
-    <link rel="stylesheet" href="css/base.css?v=33">
-    <link rel="stylesheet" href="css/components.css?v=33">
-    <link rel="stylesheet" href="css/layout.css?v=33">
+    <link rel="stylesheet" href="css/variables.css?v=34">
+    <link rel="stylesheet" href="css/base.css?v=34">
+    <link rel="stylesheet" href="css/components.css?v=34">
+    <link rel="stylesheet" href="css/layout.css?v=34">
     <style>
         .staff-actions { display: flex; gap: 0.5rem; }
         .role-badge { 
@@ -153,9 +153,9 @@
             <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
                 <div class="card" style="padding: 1.5rem;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; flex-wrap:wrap; gap:1rem;">
-                        <div style="display:flex; gap:1rem; flex:1; max-width:600px;">
-                            <input type="text" id="searchInput" class="form-input" placeholder="Search by name or username..." style="flex:1">
-                            <select id="filterDept" class="form-input">
+                        <div style="display:flex; gap:0.75rem; flex:1; max-width:850px; flex-wrap:wrap;">
+                            <input type="text" id="searchInput" class="form-input" placeholder="🔍 Search name or username..." style="min-width:180px; flex:1">
+                            <select id="filterDept" class="form-input" style="min-width:120px;">
                                 <option value="">All Depts</option>
                                 <option value="CSE">CSE</option>
                                 <option value="IT">IT</option>
@@ -165,23 +165,34 @@
                                 <option value="CIVIL">CIVIL</option>
                                 <option value="ALL_I">First Year (S&H)</option>
                             </select>
-                            <select id="filterRole" class="form-input">
+                            <select id="filterRole" class="form-input" style="min-width:100px;">
                                 <option value="">All Roles</option>
                                 <option value="hod">HOD</option>
                                 <option value="faculty">Faculty</option>
                             </select>
+                            <select id="sortStaff" class="form-input" style="min-width:150px;">
+                                <option value="name_asc">Name: A &rarr; Z</option>
+                                <option value="name_desc">Name: Z &rarr; A</option>
+                                <option value="user_asc">Username: Asc</option>
+                                <option value="dept_asc">Department</option>
+                                <option value="role_asc">Role (HOD &rarr; Faculty)</option>
+                            </select>
                         </div>
+                        <button id="exportStaffBtn" type="button" class="btn btn--outline" style="display:flex; align-items:center; gap:4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Export CSV
+                        </button>
                     </div>
                     
                     <div class="table-responsive">
                         <table class="attendance-table">
                             <thead>
                                 <tr>
-                                    <th>Username</th>
-                                    <th>Name</th>
-                                    <th>Department</th>
+                                    <th style="cursor:pointer;" onclick="window.StaffManager ? window.StaffManager.toggleSort('user') : null">Username <span id="stsort-user">↕</span></th>
+                                    <th style="cursor:pointer;" onclick="window.StaffManager ? window.StaffManager.toggleSort('name') : null">Name <span id="stsort-name">▲</span></th>
+                                    <th style="cursor:pointer;" onclick="window.StaffManager ? window.StaffManager.toggleSort('dept') : null">Department <span id="stsort-dept">↕</span></th>
                                     <th>Designation</th>
-                                    <th>Role</th>
+                                    <th style="cursor:pointer;" onclick="window.StaffManager ? window.StaffManager.toggleSort('role') : null">Role <span id="stsort-role">↕</span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -255,12 +266,12 @@
         <div id="toast" class="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:4px; z-index:9999;"></div>
     </div>
 
-    <script src="js/timetable.js?v=33"></script>
-    <script src="js/mock-data.js?v=33"></script>
-    <script src="js/auth.js?v=33"></script>
-    <script src="js/theme.js?v=33"></script>
-    <script src="js/staff.js?v=33"></script>
-    <script src="js/profile-modal.js?v=33"></script>
+    <script src="js/timetable.js?v=34"></script>
+    <script src="js/mock-data.js?v=34"></script>
+    <script src="js/auth.js?v=34"></script>
+    <script src="js/theme.js?v=34"></script>
+    <script src="js/staff.js?v=34"></script>
+    <script src="js/profile-modal.js?v=34"></script>
     <!-- Mentee Roster Modal -->
     <div id="menteesModal" class="modal" style="display:none;">
         <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;" onclick="window.StaffManager ? window.StaffManager.closeMenteesModal() : null"></div>

@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCAD Attendance Dashboard</title>
-    <link rel="stylesheet" href="css/variables.css?v=33">
-    <link rel="stylesheet" href="css/base.css?v=33">
-    <link rel="stylesheet" href="css/components.css?v=33">
-    <link rel="stylesheet" href="css/layout.css?v=33">
+    <link rel="stylesheet" href="css/variables.css?v=34">
+    <link rel="stylesheet" href="css/base.css?v=34">
+    <link rel="stylesheet" href="css/components.css?v=34">
+    <link rel="stylesheet" href="css/layout.css?v=34">
 </head>
 <body class="app-layout" data-theme="light">
     <!-- Sidebar -->
@@ -188,19 +188,61 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                         <h2 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: #C62828;">Defaulters List (Below 75% Attendance)</h2>
                     </div>
-                    <span id="defaulters-count-badge" class="badge badge--absent">0 Students</span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span id="defaulters-count-badge" class="badge badge--absent">0 Students</span>
+                        <button class="btn btn--sm btn--outline" onclick="window.DashboardApp ? window.DashboardApp.exportDefaultersCSV() : null" title="Export Defaulters to CSV" style="display: flex; align-items: center; gap: 4px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+                <!-- Defaulters Filter & Sort Strip -->
+                <div style="padding: 0.75rem 1.25rem; background: var(--color-bg); border-bottom: 1px solid var(--color-border); display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                        <input type="text" id="admin-defaulter-search" class="form-input form-input--sm" placeholder="🔍 Search name / reg no..." style="min-width: 180px; max-width: 240px;" oninput="window.DashboardApp ? window.DashboardApp.onDefaulterSearch(this.value) : null">
+                        <select id="admin-defaulter-dept" class="form-input form-input--sm" onchange="window.DashboardApp ? window.DashboardApp.onDefaulterFilterChange() : null">
+                            <option value="ALL">All Departments</option>
+                            <option value="CSE">CSE</option>
+                            <option value="ECE">ECE</option>
+                            <option value="EEE">EEE</option>
+                            <option value="MECH">MECH</option>
+                            <option value="CIVIL">CIVIL</option>
+                        </select>
+                        <select id="admin-defaulter-year" class="form-input form-input--sm" onchange="window.DashboardApp ? window.DashboardApp.onDefaulterFilterChange() : null">
+                            <option value="ALL">All Years</option>
+                            <option value="I">Year I</option>
+                            <option value="II">Year II</option>
+                            <option value="III">Year III</option>
+                            <option value="IV">Year IV</option>
+                        </select>
+                        <select id="admin-defaulter-risk" class="form-input form-input--sm" onchange="window.DashboardApp ? window.DashboardApp.onDefaulterFilterChange() : null">
+                            <option value="ALL">All Risk Levels</option>
+                            <option value="HIGH">High Risk (&lt; 60% or &ge; 5 Absences)</option>
+                            <option value="MEDIUM">Medium Risk (&lt; 75%)</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted);">Sort:</label>
+                        <select id="admin-defaulter-sort" class="form-input form-input--sm" onchange="window.DashboardApp ? window.DashboardApp.onDefaulterSortChange(this.value) : null">
+                            <option value="att_asc">Attendance: Lowest First ⚠️</option>
+                            <option value="att_desc">Attendance: Highest First</option>
+                            <option value="abs_desc">Consecutive Absences: Most First ⚠️</option>
+                            <option value="name_asc">Name: A &rarr; Z</option>
+                            <option value="reg_asc">Reg No: Ascending</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="card__body" style="padding: 0;">
                     <div class="table-container" style="overflow-x: auto;">
                         <table class="attendance-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
                             <thead>
                                 <tr>
-                                    <th>Reg No</th>
-                                    <th>Student Name</th>
-                                    <th>Department</th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('regNo') : null">Reg No <span id="asort-reg">↕</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('name') : null">Student Name <span id="asort-name">↕</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('dept') : null">Department <span id="asort-dept">↕</span></th>
                                     <th>Year</th>
-                                    <th>Attendance % (30 Days)</th>
-                                    <th>Consecutive Absences</th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('att') : null">Attendance % (30 Days) <span id="asort-att">▲</span></th>
+                                    <th style="cursor: pointer;" onclick="window.DashboardApp ? window.DashboardApp.toggleDefaulterSort('abs') : null">Consecutive Absences <span id="asort-abs">↕</span></th>
                                     <th>Risk Level</th>
                                     <th>Actions</th>
                                 </tr>
@@ -268,11 +310,25 @@
                             <option value="ECE">ECE</option>
                             <option value="MECH">MECH</option>
                         </select>
+                        <select id="year-filter" class="filter-select search-input">
+                            <option value="ALL">All Years</option>
+                            <option value="I">Year I</option>
+                            <option value="II">Year II</option>
+                            <option value="III">Year III</option>
+                            <option value="IV">Year IV</option>
+                        </select>
                         <select id="status-filter" class="filter-select search-input">
                             <option value="ALL">All Status</option>
                             <option value="Present">Present</option>
                             <option value="Late">Late</option>
                             <option value="Absent">Absent</option>
+                        </select>
+                        <select id="today-sort" class="filter-select search-input">
+                            <option value="name_asc">Name: A &rarr; Z</option>
+                            <option value="name_desc">Name: Z &rarr; A</option>
+                            <option value="reg_asc">Reg No: Asc</option>
+                            <option value="reg_desc">Reg No: Desc</option>
+                            <option value="status_asc">Status</option>
                         </select>
                         <button id="csv-export-btn" class="btn btn--secondary btn--sm"> Export CSV</button>
                     </div>
@@ -456,17 +512,17 @@
 
     <div id="toast-container" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 200; display: flex; flex-direction: column; gap: 0.75rem;"></div>
 
-    <script src="js/timetable.js?v=33"></script>
-    <script src="js/mock-data.js?v=33"></script>
-    <script src="js/auth.js?v=33"></script>
-    <script src="js/attendance.js?v=33"></script>
-    <script src="js/theme.js?v=33"></script>
-    <script src="js/charts.js?v=33"></script>
-        <script src="js/audit-trail.js?v=33"></script>
-    <script src="js/od-exemption.js?v=33"></script>
-    <script src="js/reconciliation.js?v=33"></script>
-    <script src="js/warning-letter.js?v=33"></script>
-    <script src="js/dashboard.js?v=33"></script>
-    <script src="js/profile-modal.js?v=33"></script>
+    <script src="js/timetable.js?v=34"></script>
+    <script src="js/mock-data.js?v=34"></script>
+    <script src="js/auth.js?v=34"></script>
+    <script src="js/attendance.js?v=34"></script>
+    <script src="js/theme.js?v=34"></script>
+    <script src="js/charts.js?v=34"></script>
+        <script src="js/audit-trail.js?v=34"></script>
+    <script src="js/od-exemption.js?v=34"></script>
+    <script src="js/reconciliation.js?v=34"></script>
+    <script src="js/warning-letter.js?v=34"></script>
+    <script src="js/dashboard.js?v=34"></script>
+    <script src="js/profile-modal.js?v=34"></script>
 </body>
 </html>

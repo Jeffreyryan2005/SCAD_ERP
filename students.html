@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Students Management - SCAD</title>
-    <link rel="stylesheet" href="css/variables.css?v=33">
-    <link rel="stylesheet" href="css/base.css?v=33">
-    <link rel="stylesheet" href="css/components.css?v=33">
-    <link rel="stylesheet" href="css/layout.css?v=33">
+    <link rel="stylesheet" href="css/variables.css?v=34">
+    <link rel="stylesheet" href="css/base.css?v=34">
+    <link rel="stylesheet" href="css/components.css?v=34">
+    <link rel="stylesheet" href="css/layout.css?v=34">
     <style>
         .student-actions { display: flex; gap: 0.5rem; }
     </style>
@@ -148,9 +148,9 @@
             <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
                 <div class="card" style="padding: 1.5rem;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; flex-wrap:wrap; gap:1rem;">
-                        <div style="display:flex; gap:1rem; flex:1; max-width:800px;">
-                            <input type="text" id="searchInput" class="form-input" placeholder="Search by name or reg no..." style="flex:1">
-                            <select id="filterDept" class="form-input">
+                        <div style="display:flex; gap:0.75rem; flex:1; max-width:850px; flex-wrap:wrap;">
+                            <input type="text" id="searchInput" class="form-input" placeholder="🔍 Search name or reg no..." style="min-width:180px; flex:1">
+                            <select id="filterDept" class="form-input" style="min-width:110px;">
                                 <option value="">All Depts</option>
                                 <option value="CSE">CSE</option>
                                 <option value="IT">IT</option>
@@ -160,29 +160,40 @@
                                 <option value="CIVIL">CIVIL</option>
                                 <option value="AI">AI</option>
                             </select>
-                            <select id="filterYear" class="form-input">
+                            <select id="filterYear" class="form-input" style="min-width:100px;">
                                 <option value="">All Years</option>
                                 <option value="I">I Year</option>
                                 <option value="II">II Year</option>
                                 <option value="III">III Year</option>
                                 <option value="IV">IV Year</option>
                             </select>
-                            <select id="filterSection" class="form-input">
-                                <option value="">All Sections</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
+                            <select id="filterSection" class="form-input" style="min-width:90px;">
+                                <option value="">All Sec</option>
+                                <option value="A">Sec A</option>
+                                <option value="B">Sec B</option>
+                                <option value="C">Sec C</option>
+                            </select>
+                            <select id="sortStudents" class="form-input" style="min-width:150px;">
+                                <option value="name_asc">Name: A &rarr; Z</option>
+                                <option value="name_desc">Name: Z &rarr; A</option>
+                                <option value="reg_asc">Reg No: Ascending</option>
+                                <option value="reg_desc">Reg No: Descending</option>
+                                <option value="year_asc">Year: I &rarr; IV</option>
                             </select>
                         </div>
+                        <button id="exportStudentsBtn" type="button" class="btn btn--outline" style="display:flex; align-items:center; gap:4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Export CSV
+                        </button>
                     </div>
                     
                     <div class="table-responsive">
                         <table class="attendance-table">
                             <thead>
                                 <tr>
-                                    <th>Reg No</th>
-                                    <th>Name</th>
-                                    <th>Dept / Year</th>
+                                    <th style="cursor:pointer;" onclick="window.StudentsManager ? window.StudentsManager.toggleSort('reg') : null">Reg No <span id="ssort-reg">↕</span></th>
+                                    <th style="cursor:pointer;" onclick="window.StudentsManager ? window.StudentsManager.toggleSort('name') : null">Name <span id="ssort-name">▲</span></th>
+                                    <th style="cursor:pointer;" onclick="window.StudentsManager ? window.StudentsManager.toggleSort('dept') : null">Dept / Year <span id="ssort-dept">↕</span></th>
                                     <th>Phone</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -393,11 +404,11 @@
     <div id="toast" class="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:4px; z-index:9999;"></div>
     </div>
 
-    <script src="js/timetable.js?v=33"></script>
-    <script src="js/mock-data.js?v=33"></script>
-    <script src="js/auth.js?v=33"></script>
-    <script src="js/theme.js?v=33"></script>
-    <script src="js/students.js?v=33"></script>
-    <script src="js/profile-modal.js?v=33"></script>
+    <script src="js/timetable.js?v=34"></script>
+    <script src="js/mock-data.js?v=34"></script>
+    <script src="js/auth.js?v=34"></script>
+    <script src="js/theme.js?v=34"></script>
+    <script src="js/students.js?v=34"></script>
+    <script src="js/profile-modal.js?v=34"></script>
 </body>
 </html>

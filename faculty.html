@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Classes & Attendance — SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=33">
-    <link rel="stylesheet" href="css/base.css?v=33">
-    <link rel="stylesheet" href="css/components.css?v=33">
-    <link rel="stylesheet" href="css/layout.css?v=33">
+    <link rel="stylesheet" href="css/variables.css?v=34">
+    <link rel="stylesheet" href="css/base.css?v=34">
+    <link rel="stylesheet" href="css/components.css?v=34">
+    <link rel="stylesheet" href="css/layout.css?v=34">
     <style>
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
         #scheduleStrip { width: 100%; border-collapse: collapse; min-width: 650px; }
@@ -237,6 +237,22 @@
                         </div>
 
                         <div class="table-responsive" style="overflow-x: auto;">
+                            <!-- Period Marking Student Toolbar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 260px;">
+                                    <input type="text" id="period-student-search" class="form-input form-input--sm" placeholder="🔍 Filter student name / Reg No..." oninput="window.FacultyDashboard.onPeriodStudentSearch(this.value)" style="max-width: 260px;">
+                                    <div style="display: flex; gap: 4px;">
+                                        <button type="button" class="btn btn--sm btn--outline" id="filter-btn-all" onclick="window.FacultyDashboard.filterPeriodStatus('ALL')">All</button>
+                                        <button type="button" class="btn btn--sm btn--outline" id="filter-btn-present" onclick="window.FacultyDashboard.filterPeriodStatus('present')">Present</button>
+                                        <button type="button" class="btn btn--sm btn--outline" id="filter-btn-absent" onclick="window.FacultyDashboard.filterPeriodStatus('absent')">Absent</button>
+                                        <button type="button" class="btn btn--sm btn--outline" id="filter-btn-od" onclick="window.FacultyDashboard.filterPeriodStatus('od')">OD</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.markAllAbsent()" title="Mark all students absent">All Absent</button>
+                                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.invertAttendance()" title="Invert Present / Absent">Invert</button>
+                                </div>
+                            </div>
                             <table class="attendance-table" style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
@@ -261,24 +277,91 @@
 
                 <!-- My Mentees View (Properly nested inside main layout) -->
                 <div id="menteesSectionView" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                         <div>
                             <h2 style="margin: 0; font-size: 1.25rem;">Assigned Mentee Students</h2>
-                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Track attendance, academic health, and communicate directly with parents.</p>
+                            <p style="margin: 4px 0 0 0; color: var(--color-text-muted); font-size: 0.9rem;">Monitor attendance, CGPA, backlogs, and reach out to parents with one click.</p>
                         </div>
-                        <span id="faculty-mentees-count" class="badge badge--present">0 Mentees</span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span id="faculty-mentees-count" class="badge badge--present" style="font-size: 0.85rem; padding: 6px 12px;">0 Mentees</span>
+                            <button id="mentee-export-btn" class="btn btn--sm btn--outline" style="display: flex; align-items: center; gap: 5px;" onclick="window.FacultyDashboard.exportMenteesCSV()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mentee Stat Summary Pills -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+                        <div class="stat-pill" onclick="window.FacultyDashboard.setMenteeFilter('ALL')" style="cursor: pointer; background: var(--color-surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--color-border); border-left: 4px solid var(--color-primary); transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">Total Mentees</div>
+                            <div id="mentee-stat-total" style="font-size: 1.4rem; font-weight: 700; color: var(--color-text);">0</div>
+                        </div>
+                        <div class="stat-pill" onclick="window.FacultyDashboard.setMenteeFilter('DEFAULTER')" style="cursor: pointer; background: var(--color-surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--color-border); border-left: 4px solid #C62828; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-size: 0.75rem; color: #C62828; text-transform: uppercase; font-weight: 600;">Below 75% Defaulters</div>
+                            <div id="mentee-stat-defaulters" style="font-size: 1.4rem; font-weight: 700; color: #C62828;">0</div>
+                        </div>
+                        <div class="stat-pill" onclick="window.FacultyDashboard.setMenteeFilter('TOP_CGPA')" style="cursor: pointer; background: var(--color-surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--color-border); border-left: 4px solid #2E7D32; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-size: 0.75rem; color: #2E7D32; text-transform: uppercase; font-weight: 600;">High CGPA (&ge; 8.0)</div>
+                            <div id="mentee-stat-high-cgpa" style="font-size: 1.4rem; font-weight: 700; color: #2E7D32;">0</div>
+                        </div>
+                        <div class="stat-pill" onclick="window.FacultyDashboard.setMenteeFilter('HAS_ARREARS')" style="cursor: pointer; background: var(--color-surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--color-border); border-left: 4px solid #E65100; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="font-size: 0.75rem; color: #E65100; text-transform: uppercase; font-weight: 600;">With Arrears</div>
+                            <div id="mentee-stat-arrears" style="font-size: 1.4rem; font-weight: 700; color: #E65100;">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Comprehensive Filter & Sorting Toolbar -->
+                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 0.85rem 1.1rem; margin-bottom: 1.25rem; display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                            <div style="position: relative; min-width: 200px; flex: 1; max-width: 300px;">
+                                <input type="text" id="mentee-search-input" class="form-input form-input--sm" placeholder="Search name or reg no..." style="width: 100%; padding-left: 30px;" oninput="window.FacultyDashboard.onMenteeSearch(this.value)">
+                                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--color-text-muted); pointer-events: none;">🔍</span>
+                            </div>
+                            <select id="mentee-year-filter" class="form-input form-input--sm" style="width: auto;" onchange="window.FacultyDashboard.onMenteeFilterChange()">
+                                <option value="ALL">All Years</option>
+                                <option value="I">Year I</option>
+                                <option value="II">Year II</option>
+                                <option value="III">Year III</option>
+                                <option value="IV">Year IV</option>
+                            </select>
+                            <select id="mentee-att-filter" class="form-input form-input--sm" style="width: auto;" onchange="window.FacultyDashboard.onMenteeFilterChange()">
+                                <option value="ALL">All Attendance</option>
+                                <option value="DEFAULTER">Defaulters (&lt; 75%)</option>
+                                <option value="BORDERLINE">Borderline (75% - 80%)</option>
+                                <option value="GOOD">Good (&ge; 80%)</option>
+                            </select>
+                            <select id="mentee-arrears-filter" class="form-input form-input--sm" style="width: auto;" onchange="window.FacultyDashboard.onMenteeFilterChange()">
+                                <option value="ALL">All Backlogs</option>
+                                <option value="HAS_ARREARS">Has Arrears (&ge; 1)</option>
+                                <option value="CLEAR">No Arrears (0)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <label for="mentee-sort-select" style="font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); white-space: nowrap;">Sort by:</label>
+                            <select id="mentee-sort-select" class="form-input form-input--sm" style="width: auto;" onchange="window.FacultyDashboard.onMenteeSortChange(this.value)">
+                                <option value="cgpa_desc">CGPA: Highest First ⭐</option>
+                                <option value="cgpa_asc">CGPA: Lowest First</option>
+                                <option value="att_asc">Attendance: Lowest First ⚠️</option>
+                                <option value="att_desc">Attendance: Highest First</option>
+                                <option value="arrears_desc">Arrears: Most First ⚠️</option>
+                                <option value="name_asc">Name: A &rarr; Z</option>
+                                <option value="reg_asc">Reg No: Ascending</option>
+                            </select>
+                            <button class="btn btn--sm btn--secondary" onclick="window.FacultyDashboard.resetMenteeFilters()" title="Reset all filters">Reset</button>
+                        </div>
                     </div>
 
                     <div class="table-responsive" style="overflow-x: auto; background: var(--color-surface); border-radius: 8px; border: 1px solid var(--color-border); box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                         <table class="attendance-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
                             <thead>
                                 <tr style="background: var(--color-bg); border-bottom: 2px solid var(--color-border); text-align: left;">
-                                    <th style="padding: 10px 14px;">Reg No</th>
-                                    <th style="padding: 10px 14px;">Student Name</th>
-                                    <th style="padding: 10px 14px;">Year / Sec</th>
-                                    <th style="padding: 10px 14px;">Attendance %</th>
-                                    <th style="padding: 10px 14px;">CGPA</th>
-                                    <th style="padding: 10px 14px;">Arrears</th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('regNo')">Reg No <span id="sort-icon-regNo">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('name')">Student Name <span id="sort-icon-name">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('year')">Year / Sec <span id="sort-icon-year">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('att')">Attendance % <span id="sort-icon-att">↕</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('cgpa')">CGPA <span id="sort-icon-cgpa">▲</span></th>
+                                    <th style="padding: 10px 14px; cursor: pointer;" onclick="window.FacultyDashboard.toggleMenteeHeaderSort('arrears')">Arrears <span id="sort-icon-arrears">↕</span></th>
                                     <th style="padding: 10px 14px;">Parent Phone</th>
                                     <th style="padding: 10px 14px;">Parent Reachout</th>
                                 </tr>
@@ -491,13 +574,13 @@
 
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=33"></script>
-    <script src="js/mock-data.js?v=33"></script>
-    <script src="js/auth.js?v=33"></script>
-    <script src="js/theme.js?v=33"></script>
-    <script src="js/reallocation.js?v=33"></script>
-    <script src="js/faculty.js?v=33"></script>
-    <script src="js/profile-modal.js?v=33"></script>
+    <script src="js/timetable.js?v=34"></script>
+    <script src="js/mock-data.js?v=34"></script>
+    <script src="js/auth.js?v=34"></script>
+    <script src="js/theme.js?v=34"></script>
+    <script src="js/reallocation.js?v=34"></script>
+    <script src="js/faculty.js?v=34"></script>
+    <script src="js/profile-modal.js?v=34"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();

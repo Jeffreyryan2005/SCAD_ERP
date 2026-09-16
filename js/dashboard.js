@@ -11,6 +11,15 @@
     pageSize: 15,
     records: [],        // full attendance records from engine
     filteredRecords: [], // after search/filter
+    rawDefaulters: [],
+    defaulterFilters: {
+      search: '',
+      dept: 'ALL',
+      year: 'ALL',
+      risk: 'ALL',
+      sort: 'att_asc'
+    },
+    todaySort: 'name_asc',
     debounceTimer: null,
     currentUser: null,
 
@@ -186,6 +195,21 @@
       // Faculty sees only their department
       if (this.currentUser && this.currentUser.role === 'faculty' && this.currentUser.department !== 'ALL') {
         this.filteredRecords = this.filteredRecords.filter(r => r.student.department === this.currentUser.department);
+      }
+
+      // Sorting
+      const sortEl = document.getElementById('today-sort');
+      const sortVal = sortEl ? sortEl.value : this.todaySort;
+      if (sortVal === 'name_asc') {
+        this.filteredRecords.sort((a, b) => (a.student.name || '').localeCompare(b.student.name || ''));
+      } else if (sortVal === 'name_desc') {
+        this.filteredRecords.sort((a, b) => (b.student.name || '').localeCompare(a.student.name || ''));
+      } else if (sortVal === 'reg_asc') {
+        this.filteredRecords.sort((a, b) => (a.student.regNo || '').localeCompare(b.student.regNo || ''));
+      } else if (sortVal === 'reg_desc') {
+        this.filteredRecords.sort((a, b) => (b.student.regNo || '').localeCompare(a.student.regNo || ''));
+      } else if (sortVal === 'status_asc') {
+        this.filteredRecords.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
       }
 
       this.currentPage = 1;
@@ -551,7 +575,7 @@
       }
 
       // Filters
-      ['dept-filter', 'status-filter', 'year-filter', 'period-filter'].forEach(id => {
+      ['dept-filter', 'status-filter', 'year-filter', 'period-filter', 'today-sort'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', () => self.applyFilters());
       });
@@ -717,7 +741,7 @@
 
       // Show loading state while computing (30-day scan)
       section.style.display = '';
-      tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--color-text-muted)">⏳ Analysing 30-day attendance history…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--color-text-muted)">⏳ Analysing 30-day attendance history…</td></tr>';
       if (badge) badge.textContent = 'Loading…';
 
       // Run async so the rest of the dashboard renders first
@@ -725,61 +749,199 @@
       setTimeout(function () {
         const defaulters = window.AttendanceEngine.getDefaulters(dateStr);
 
-      // Filter by current dept/year if faculty
-        let filtered = defaulters;
+        // Filter by current dept/year if faculty
+        let filtered = defaulters || [];
         if (self.currentUser && self.currentUser.role === 'faculty' && self.currentUser.department !== 'ALL') {
-          filtered = defaulters.filter(d => d.student.department === self.currentUser.department);
+          filtered = filtered.filter(d => d.student.department === self.currentUser.department);
         }
 
-        if (filtered.length === 0) {
-          section.style.display = 'none';
-          return;
-        }
-
-        section.style.display = '';
-        if (badge) badge.textContent = filtered.length + ' Student' + (filtered.length > 1 ? 's' : '');
-
-        tbody.innerHTML = '';
-        filtered.forEach(d => {
-          const riskColors = { high: '#C62828', medium: '#E65100', low: '#F9A825' };
-          const riskBg = { high: 'rgba(198,40,40,0.08)', medium: 'rgba(230,81,0,0.08)', low: 'rgba(249,168,37,0.10)' };
-          const riskLabels = { high: ' High', medium: ' Medium', low: ' Low' };
-
-          const pctColor = d.attendancePct < 60 ? '#C62828' : d.attendancePct < 75 ? '#E65100' : '#1B5E20';
-
-          // Mini attendance bar
-          const barHtml = `
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="flex:1;height:8px;background:var(--color-border);border-radius:4px;overflow:hidden">
-                <div style="height:100%;width:${d.attendancePct}%;background:${pctColor};border-radius:4px;transition:width 0.4s"></div>
-              </div>
-              <span style="font-weight:600;color:${pctColor};font-size:0.85rem;white-space:nowrap">${d.attendancePct}%</span>
-              <span style="font-size:0.75rem;color:var(--color-text-muted)">${d.presentDays}/${d.workingDays} days</span>
-            </div>`;
-
-          const tr = document.createElement('tr');
-          tr.style.background = riskBg[d.riskLevel];
-          const parentPhoneClean = (d.student.parentPhone || '').replace(/\s+/g, '');
-          const smsMsg = encodeURIComponent(`Dear Parent, Attendance Alert from SCAD CET: Your ward ${d.student.name} (${d.student.regNo}) has ${d.attendancePct}% attendance. Please meet Principal.`);
-          tr.innerHTML = `
-            <td style="padding:10px 16px;font-weight:500">${d.student.regNo}</td>
-            <td style="padding:10px 16px"><a class="student-name-link profile-btn" data-student-id="${d.student.id}" style="color:var(--color-primary); font-weight:600; cursor:pointer;">${self._escapeHtml(d.student.name)}</a></td>
-            <td style="padding:10px 16px">${d.student.department}</td>
-            <td style="padding:10px 16px">${d.student.year}</td>
-            <td style="padding:10px 16px;min-width:160px">${barHtml}</td>
-            <td style="padding:10px 16px;text-align:center;font-weight:600;color:${d.maxConsecutiveAbsences >= 5 ? '#C62828' : 'var(--color-text)'}">${d.maxConsecutiveAbsences} days</td>
-            <td style="padding:10px 16px">
-              <span style="padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;background:${riskBg[d.riskLevel]};color:${riskColors[d.riskLevel]};border:1px solid ${riskColors[d.riskLevel]}">${riskLabels[d.riskLevel]}</span>
-            </td>
-            <td style="padding:10px 16px">
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn--sm btn--outline" onclick="window.WarningLetterGenerator ? window.WarningLetterGenerator.generate('${d.student.id}') : null">Letter</button>
-                <button class="btn btn--sm btn--secondary" onclick="window.location.href='sms:${parentPhoneClean}?body=${smsMsg}'">SMS</button>
-              </div>
-            </td>`;
-          tbody.appendChild(tr);
-        });
+        self.rawDefaulters = filtered;
+        self.applyDefaulterFiltering();
       }, 50); // short delay so dashboard renders first
+    },
+
+    applyDefaulterFiltering: function () {
+      const section = document.getElementById('defaulters-section');
+      const tbody = document.getElementById('defaulters-table-body');
+      const badge = document.getElementById('defaulters-count-badge');
+      if (!tbody) return;
+
+      const f = this.defaulterFilters;
+      let list = (this.rawDefaulters || []).slice();
+
+      // Search
+      if (f.search) {
+        const q = f.search.toLowerCase();
+        list = list.filter(d =>
+          (d.student.name && d.student.name.toLowerCase().includes(q)) ||
+          (d.student.regNo && d.student.regNo.toLowerCase().includes(q))
+        );
+      }
+
+      // Dept
+      if (f.dept && f.dept !== 'ALL') {
+        list = list.filter(d => d.student.department === f.dept);
+      }
+
+      // Year
+      if (f.year && f.year !== 'ALL') {
+        list = list.filter(d => {
+          const sy = String(d.student.year || '');
+          return sy === f.year || sy.includes(f.year) || (f.year === 'I' && (sy === '1' || sy.includes('1st')));
+        });
+      }
+
+      // Risk
+      if (f.risk && f.risk !== 'ALL') {
+        if (f.risk === 'HIGH') {
+          list = list.filter(d => d.riskLevel === 'high' || d.attendancePct < 60 || d.maxConsecutiveAbsences >= 5);
+        } else if (f.risk === 'MEDIUM') {
+          list = list.filter(d => d.riskLevel === 'medium' || (d.attendancePct >= 60 && d.attendancePct < 75));
+        }
+      }
+
+      // Sort
+      list.sort((a, b) => {
+        switch (f.sort) {
+          case 'att_asc': return a.attendancePct - b.attendancePct;
+          case 'att_desc': return b.attendancePct - a.attendancePct;
+          case 'abs_desc': return b.maxConsecutiveAbsences - a.maxConsecutiveAbsences;
+          case 'abs_asc': return a.maxConsecutiveAbsences - b.maxConsecutiveAbsences;
+          case 'name_asc': return (a.student.name || '').localeCompare(b.student.name || '');
+          case 'name_desc': return (b.student.name || '').localeCompare(a.student.name || '');
+          case 'reg_asc': return (a.student.regNo || '').localeCompare(b.student.regNo || '');
+          case 'reg_desc': return (b.student.regNo || '').localeCompare(a.student.regNo || '');
+          case 'dept_asc': return (a.student.department || '').localeCompare(b.student.department || '');
+          case 'dept_desc': return (b.student.department || '').localeCompare(a.student.department || '');
+          default: return a.attendancePct - b.attendancePct;
+        }
+      });
+
+      if (badge) {
+        badge.textContent = list.length + ' Student' + (list.length !== 1 ? 's' : '');
+      }
+
+      this.updateDefaulterSortIcons();
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No defaulters match the selected criteria.</td></tr>';
+        return;
+      }
+
+      const riskColors = { high: '#C62828', medium: '#E65100', low: '#F9A825' };
+      const riskBg = { high: 'rgba(198,40,40,0.08)', medium: 'rgba(230,81,0,0.08)', low: 'rgba(249,168,37,0.10)' };
+      const riskLabels = { high: 'High', medium: 'Medium', low: 'Low' };
+
+      const self = this;
+      tbody.innerHTML = list.map(d => {
+        const pctColor = d.attendancePct < 60 ? '#C62828' : d.attendancePct < 75 ? '#E65100' : '#1B5E20';
+        const barHtml = `
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:8px;background:var(--color-border);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${d.attendancePct}%;background:${pctColor};border-radius:4px;transition:width 0.4s"></div>
+            </div>
+            <span style="font-weight:600;color:${pctColor};font-size:0.85rem;white-space:nowrap">${d.attendancePct}%</span>
+            <span style="font-size:0.75rem;color:var(--color-text-muted)">${d.presentDays}/${d.workingDays} days</span>
+          </div>`;
+
+        const parentPhoneClean = (d.student.parentPhone || '').replace(/\s+/g, '');
+        const smsMsg = encodeURIComponent(`Dear Parent, Attendance Alert from SCAD CET: Your ward ${d.student.name} (${d.student.regNo}) has ${d.attendancePct}% attendance. Please meet Principal.`);
+
+        return `<tr style="background:${riskBg[d.riskLevel] || 'transparent'}">
+          <td style="padding:10px 16px;font-weight:500">${d.student.regNo}</td>
+          <td style="padding:10px 16px"><a class="student-name-link profile-btn" data-student-id="${d.student.id}" style="color:var(--color-primary); font-weight:600; cursor:pointer;">${self._escapeHtml(d.student.name)}</a></td>
+          <td style="padding:10px 16px">${d.student.department}</td>
+          <td style="padding:10px 16px">${d.student.year}</td>
+          <td style="padding:10px 16px;min-width:160px">${barHtml}</td>
+          <td style="padding:10px 16px;text-align:center;font-weight:600;color:${d.maxConsecutiveAbsences >= 5 ? '#C62828' : 'var(--color-text)'}">${d.maxConsecutiveAbsences} days</td>
+          <td style="padding:10px 16px">
+            <span style="padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;background:${riskBg[d.riskLevel] || 'transparent'};color:${riskColors[d.riskLevel] || '#C62828'};border:1px solid ${riskColors[d.riskLevel] || '#C62828'}">${riskLabels[d.riskLevel] || 'Defaulter'}</span>
+          </td>
+          <td style="padding:10px 16px">
+            <div style="display:flex; gap:4px;">
+              <button class="btn btn--sm btn--outline" onclick="window.WarningLetterGenerator ? window.WarningLetterGenerator.generate('${d.student.id}') : null">Letter</button>
+              <button class="btn btn--sm btn--secondary" onclick="window.location.href='sms:${parentPhoneClean}?body=${smsMsg}'">SMS</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    },
+
+    onDefaulterSearch: function (val) {
+      this.defaulterFilters.search = (val || '').trim();
+      this.applyDefaulterFiltering();
+    },
+
+    onDefaulterFilterChange: function () {
+      const deptEl = document.getElementById('admin-defaulter-dept');
+      const yearEl = document.getElementById('admin-defaulter-year');
+      const riskEl = document.getElementById('admin-defaulter-risk');
+      if (deptEl) this.defaulterFilters.dept = deptEl.value;
+      if (yearEl) this.defaulterFilters.year = yearEl.value;
+      if (riskEl) this.defaulterFilters.risk = riskEl.value;
+      this.applyDefaulterFiltering();
+    },
+
+    onDefaulterSortChange: function (val) {
+      this.defaulterFilters.sort = val;
+      this.applyDefaulterFiltering();
+    },
+
+    toggleDefaulterSort: function (field) {
+      const cur = this.defaulterFilters.sort;
+      let next = cur;
+      if (field === 'regNo') {
+        next = (cur === 'reg_asc') ? 'reg_desc' : 'reg_asc';
+      } else if (field === 'name') {
+        next = (cur === 'name_asc') ? 'name_desc' : 'name_asc';
+      } else if (field === 'dept') {
+        next = (cur === 'dept_asc') ? 'dept_desc' : 'dept_asc';
+      } else if (field === 'att') {
+        next = (cur === 'att_asc') ? 'att_desc' : 'att_asc';
+      } else if (field === 'abs') {
+        next = (cur === 'abs_desc') ? 'abs_asc' : 'abs_desc';
+      }
+      this.defaulterFilters.sort = next;
+      const sortSelect = document.getElementById('admin-defaulter-sort');
+      if (sortSelect) sortSelect.value = next;
+      this.applyDefaulterFiltering();
+    },
+
+    updateDefaulterSortIcons: function () {
+      const s = this.defaulterFilters.sort;
+      const setIcon = (id, ascVal, descVal) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (s === ascVal) el.textContent = '▲';
+        else if (s === descVal) el.textContent = '▼';
+        else el.textContent = '↕';
+      };
+      setIcon('asort-reg', 'reg_asc', 'reg_desc');
+      setIcon('asort-name', 'name_asc', 'name_desc');
+      setIcon('asort-dept', 'dept_asc', 'dept_desc');
+      setIcon('asort-att', 'att_asc', 'att_desc');
+      setIcon('asort-abs', 'abs_asc', 'abs_desc');
+    },
+
+    exportDefaultersCSV: function () {
+      if (!this.rawDefaulters || this.rawDefaulters.length === 0) {
+        alert('No defaulter records to export.');
+        return;
+      }
+      let csv = 'Reg No,Student Name,Department,Year,Attendance %,Present Days,Working Days,Consecutive Absences,Risk Level,Parent Contact\n';
+      this.rawDefaulters.forEach(d => {
+        const s = d.student;
+        csv += `"${s.regNo || ''}","${(s.name || '').replace(/"/g, '""')}","${s.department || ''}","${s.year || ''}",${d.attendancePct},${d.presentDays},${d.workingDays},${d.maxConsecutiveAbsences},"${d.riskLevel}","${s.parentPhone || ''}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `defaulters_report_${this.currentDate || 'today'}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     },
 
     /* ============================
@@ -938,6 +1100,7 @@
   };
 
   window.Dashboard = Dashboard;
+  window.DashboardApp = Dashboard;
 
   document.addEventListener('DOMContentLoaded', () => Dashboard.init());
 

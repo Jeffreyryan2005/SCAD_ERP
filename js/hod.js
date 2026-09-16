@@ -9,7 +9,10 @@
             if (!tbody || !window.ODExemption) return;
 
             const dept = this.user ? this.user.department : 'ALL';
-            const reqs = window.ODExemption.getRequests({ department: dept });
+            let reqs = window.ODExemption.getRequests({ department: dept });
+            if (this.odFilterCategory && this.odFilterCategory !== 'ALL') {
+                reqs = reqs.filter(r => r.category && r.category.toLowerCase() === this.odFilterCategory.toLowerCase());
+            }
             const pendingCount = reqs.filter(r => r.status === 'pending').length;
 
             if (badge) {
@@ -18,7 +21,7 @@
             }
 
             if (reqs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No pending OD requests for this department.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No OD requests match the selected category.</td></tr>';
                 return;
             }
 
@@ -115,9 +118,15 @@
             }
         },
 
+        defaultersData: [],
+        defaulterFilters: { search: '', year: 'ALL', risk: 'ALL', sort: 'att_asc' },
+        facultySearch: '',
+        facultyStatus: 'ALL',
+        unlockFilterStatus: 'ALL',
+        odFilterCategory: 'ALL',
+
         renderDefaulters: function() {
             const tbody = document.getElementById('hod-defaulters-table-body');
-            const badge = document.getElementById('hod-defaulters-count-badge');
             if (!tbody) return;
 
             const dept = this.user ? this.user.department : 'ALL';
@@ -160,17 +169,56 @@
                 ];
             }
 
-            if (badge) {
-                badge.textContent = `${deptDefaulters.length} Students`;
-                badge.className = deptDefaulters.length > 0 ? 'badge badge--absent' : 'badge badge--present';
+            this.defaultersData = deptDefaulters;
+            this.applyDefaulterFiltering();
+        },
+
+        applyDefaulterFiltering: function() {
+            const tbody = document.getElementById('hod-defaulters-table-body');
+            const badge = document.getElementById('hod-defaulters-count-badge');
+            if (!tbody) return;
+
+            let list = [...this.defaultersData];
+            const { search, year, risk, sort } = this.defaulterFilters;
+
+            if (search) {
+                const q = search.toLowerCase();
+                list = list.filter(d => (d.student.name && d.student.name.toLowerCase().includes(q)) || (d.student.regNo && d.student.regNo.toLowerCase().includes(q)));
             }
 
-            if (deptDefaulters.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:#2E7D32; font-weight:500;">✓ No students below 75% attendance in this department.</td></tr>';
+            if (year !== 'ALL') {
+                list = list.filter(d => d.student.year === year);
+            }
+
+            if (risk === 'HIGH') {
+                list = list.filter(d => d.attendancePct < 60 || d.maxConsecutiveAbsences >= 5 || d.riskLevel === 'high');
+            } else if (risk === 'MEDIUM') {
+                list = list.filter(d => d.attendancePct < 75);
+            }
+
+            // Sorting
+            list.sort((a, b) => {
+                if (sort === 'att_asc') return a.attendancePct - b.attendancePct;
+                if (sort === 'att_desc') return b.attendancePct - a.attendancePct;
+                if (sort === 'abs_desc') return b.maxConsecutiveAbsences - a.maxConsecutiveAbsences;
+                if (sort === 'name_asc') return (a.student.name || '').localeCompare(b.student.name || '');
+                if (sort === 'reg_asc') return (a.student.regNo || '').localeCompare(b.student.regNo || '');
+                return 0;
+            });
+
+            if (badge) {
+                badge.textContent = `${list.length} / ${this.defaultersData.length} Students`;
+                badge.className = list.length > 0 ? 'badge badge--absent' : 'badge badge--present';
+            }
+
+            this.updateDefaulterSortIcons(sort);
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No defaulter students matching current filters.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = deptDefaulters.map(d => {
+            tbody.innerHTML = list.map(d => {
                 const s = d.student;
                 const pctColor = d.attendancePct < 60 ? '#C62828' : '#E65100';
                 const phoneStr = s.parentPhone || '+91 94432 00001';
@@ -197,6 +245,153 @@
             }).join('');
         },
 
+        updateDefaulterSortIcons: function(sort) {
+            const icons = {
+                reg: document.getElementById('hsort-reg'),
+                name: document.getElementById('hsort-name'),
+                att: document.getElementById('hsort-att'),
+                abs: document.getElementById('hsort-abs')
+            };
+            Object.values(icons).forEach(icon => { if (icon) icon.textContent = '↕'; });
+            if (sort === 'att_asc' && icons.att) icons.att.textContent = '▲';
+            else if (sort === 'att_desc' && icons.att) icons.att.textContent = '▼';
+            else if (sort === 'abs_desc' && icons.abs) icons.abs.textContent = '▼';
+            else if (sort === 'name_asc' && icons.name) icons.name.textContent = '▲';
+            else if (sort === 'reg_asc' && icons.reg) icons.reg.textContent = '▲';
+        },
+
+        onDefaulterSearch: function(val) {
+            this.defaulterFilters.search = (val || '').trim();
+            this.applyDefaulterFiltering();
+        },
+
+        onDefaulterFilterChange: function() {
+            const yEl = document.getElementById('hod-defaulter-year');
+            const rEl = document.getElementById('hod-defaulter-risk');
+            if (yEl) this.defaulterFilters.year = yEl.value;
+            if (rEl) this.defaulterFilters.risk = rEl.value;
+            this.applyDefaulterFiltering();
+        },
+
+        onDefaulterSortChange: function(val) {
+            this.defaulterFilters.sort = val;
+            this.applyDefaulterFiltering();
+        },
+
+        toggleDefaulterSort: function(field) {
+            const select = document.getElementById('hod-defaulter-sort');
+            let nextSort = 'att_asc';
+            if (field === 'att') {
+                nextSort = this.defaulterFilters.sort === 'att_asc' ? 'att_desc' : 'att_asc';
+            } else if (field === 'abs') {
+                nextSort = this.defaulterFilters.sort === 'abs_desc' ? 'att_asc' : 'abs_desc';
+            } else if (field === 'name') {
+                nextSort = this.defaulterFilters.sort === 'name_asc' ? 'att_asc' : 'name_asc';
+            } else if (field === 'regNo') {
+                nextSort = this.defaulterFilters.sort === 'reg_asc' ? 'att_asc' : 'reg_asc';
+            }
+            this.defaulterFilters.sort = nextSort;
+            if (select) select.value = nextSort;
+            this.applyDefaulterFiltering();
+        },
+
+        exportDefaultersCSV: function() {
+            if (!this.defaultersData || this.defaultersData.length === 0) {
+                alert('No defaulter data available to export.');
+                return;
+            }
+            let csv = 'Reg No,Student Name,Year,Section,Department,Attendance (%),Present Days,Working Days,Consecutive Absences,Parent Phone\n';
+            this.defaultersData.forEach(d => {
+                const s = d.student;
+                csv += `"${s.regNo}","${s.name}","${s.year}","${s.section}","${s.department}",${d.attendancePct},${d.presentDays},${d.workingDays},${d.maxConsecutiveAbsences},"${s.parentPhone || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SCAD_Defaulters_${(this.user ? this.user.department : 'CSE')}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+
+        onFacultySearch: function(val) {
+            this.facultySearch = (val || '').trim().toLowerCase();
+            this.renderFacultyGridOnly();
+        },
+
+        onFacultyFilterChange: function(val) {
+            this.facultyStatus = val;
+            this.renderFacultyGridOnly();
+        },
+
+        onUnlockFilterChange: function(val) {
+            this.unlockFilterStatus = val;
+            this.renderUnlockRequests();
+        },
+
+        onODFilterChange: function(val) {
+            this.odFilterCategory = val;
+            this.renderODRequests();
+        },
+
+        renderFacultyGridOnly: function() {
+            const grid = document.getElementById('faculty-grid');
+            if (!grid || !window.Timetable) return;
+
+            let deptFaculty;
+            if (this.user.department === 'ALL_I') {
+                deptFaculty = window.Timetable.FACULTY.filter(f => ['MATH', 'ENG', 'PHY'].includes(f.dept));
+            } else {
+                deptFaculty = window.Timetable.FACULTY.filter(f => f.dept === this.user.department);
+            }
+
+            if (this.facultySearch) {
+                deptFaculty = deptFaculty.filter(f => f.name.toLowerCase().includes(this.facultySearch) || (f.designation && f.designation.toLowerCase().includes(this.facultySearch)));
+            }
+
+            let html = '';
+            deptFaculty.forEach(faculty => {
+                let periodsHtml = '';
+                let missingSubmissions = false;
+
+                const schedule = window.Timetable.getFacultySchedule(faculty.id, this.currentDate);
+
+                for (let p = 1; p <= 7; p++) {
+                    const periodData = schedule[p - 1];
+                    const isFree = periodData.type === 'free';
+                    
+                    if (isFree) {
+                        periodsHtml += '<div class="period-badge" style="background: rgba(0,0,0,0.05); color: #999;" title="Period ' + p + ' - Free">P' + p + '</div>';
+                        continue;
+                    }
+
+                    const storageKey = 'scad_submitted_' + this.currentDate + '_' + faculty.id + '_' + p;
+                    const isSubmitted = localStorage.getItem(storageKey) === 'true';
+
+                    if (isSubmitted) {
+                        periodsHtml += '<div class="period-badge submitted" title="Period ' + p + ' - Submitted">P' + p + '</div>';
+                    } else {
+                        periodsHtml += '<div class="period-badge pending" title="Period ' + p + ' - Pending">P' + p + '</div>';
+                        missingSubmissions = true;
+                    }
+                }
+
+                if (this.facultyStatus === 'submitted' && missingSubmissions) return;
+                if (this.facultyStatus === 'pending' && !missingSubmissions) return;
+
+                const checkIcon = missingSubmissions ? '<button class="btn btn--sm btn--danger" onclick="window.HODDashboard.sendReminder(\'' + faculty.id + '\', \'' + faculty.name + '\')">Remind</button>' : '<span style="font-size: 1.2rem;">✓</span>';
+
+                html += '<div class="faculty-card"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><h3 style="margin: 0 0 4px 0;">' + faculty.name + '</h3><div style="font-size: 0.85rem; color: var(--color-text-muted);">' + faculty.designation + '</div></div>' + checkIcon + '</div><div class="period-badges">' + periodsHtml + '</div></div>';
+            });
+
+            if (!html) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; padding: 2rem; text-align: center; color: var(--color-text-muted);">No faculty match the filter.</div>';
+                return;
+            }
+
+            grid.innerHTML = html;
+        },
+
         renderUnlockRequests: function() {
             const tbody = document.getElementById('hod-unlock-table-body');
             const badge = document.getElementById('hod-unlock-badge');
@@ -221,8 +416,12 @@
                 badge.className = pendingCount > 0 ? 'badge badge--late' : 'badge badge--present';
             }
 
+            if (this.unlockFilterStatus && this.unlockFilterStatus !== 'ALL') {
+                deptReqs = deptReqs.filter(r => r.status === this.unlockFilterStatus);
+            }
+
             if (deptReqs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No pending period unlock requests.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No period unlock requests match the selected status.</td></tr>';
                 return;
             }
 

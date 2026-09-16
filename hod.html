@@ -8,10 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOD Dashboard - SCAD ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css?v=33">
-    <link rel="stylesheet" href="css/base.css?v=33">
-    <link rel="stylesheet" href="css/components.css?v=33">
-    <link rel="stylesheet" href="css/layout.css?v=33">
+    <link rel="stylesheet" href="css/variables.css?v=34">
+    <link rel="stylesheet" href="css/base.css?v=34">
+    <link rel="stylesheet" href="css/components.css?v=34">
+    <link rel="stylesheet" href="css/layout.css?v=34">
     <style>
         .verification-banner {
             background: rgba(25, 118, 210, 0.1);
@@ -204,8 +204,18 @@
         </div>
 
         <!-- 1. Faculty Submissions (First Main Section) -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; margin-bottom: 1rem;">
-            <h2 style="margin: 0; font-size: 1.25rem;">Faculty Submissions</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <h2 style="margin: 0; font-size: 1.25rem;">Faculty Submissions</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="text" id="faculty-search-input" class="form-input form-input--sm" placeholder="🔍 Search faculty / subject..." style="max-width: 220px;" oninput="window.HODDashboard.onFacultySearch(this.value)">
+                    <select id="faculty-status-filter" class="form-input form-input--sm" onchange="window.HODDashboard.onFacultyFilterChange(this.value)">
+                        <option value="ALL">All Status</option>
+                        <option value="submitted">Submitted Only</option>
+                        <option value="pending">Pending / Due</option>
+                    </select>
+                </div>
+            </div>
             <input type="date" id="date-picker" class="form-input">
         </div>
 
@@ -215,23 +225,57 @@
 
         <!-- 2. Department Defaulters Section (< 75% Attendance) Follows Faculty Submissions -->
         <div class="card" id="hod-defaulters-section" style="margin-top: 2rem; margin-bottom: 2rem;">
-            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     <h3 style="margin: 0; font-size: 1.05rem; color: #C62828;">Department Defaulters List (Below 75% Attendance)</h3>
                 </div>
-                <span id="hod-defaulters-count-badge" class="badge badge--absent">0 Students</span>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span id="hod-defaulters-count-badge" class="badge badge--absent">0 Students</span>
+                    <button class="btn btn--sm btn--outline" onclick="window.HODDashboard.exportDefaultersCSV()" title="Export Defaulters to CSV" style="display: flex; align-items: center; gap: 4px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Export CSV
+                    </button>
+                </div>
+            </div>
+            <!-- Defaulters Filter & Sort Strip -->
+            <div style="padding: 0.75rem 1.25rem; background: var(--color-bg); border-bottom: 1px solid var(--color-border); display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <input type="text" id="hod-defaulter-search" class="form-input form-input--sm" placeholder="🔍 Search name / reg no..." style="min-width: 180px; max-width: 250px;" oninput="window.HODDashboard.onDefaulterSearch(this.value)">
+                    <select id="hod-defaulter-year" class="form-input form-input--sm" onchange="window.HODDashboard.onDefaulterFilterChange()">
+                        <option value="ALL">All Years</option>
+                        <option value="I">Year I</option>
+                        <option value="II">Year II</option>
+                        <option value="III">Year III</option>
+                        <option value="IV">Year IV</option>
+                    </select>
+                    <select id="hod-defaulter-risk" class="form-input form-input--sm" onchange="window.HODDashboard.onDefaulterFilterChange()">
+                        <option value="ALL">All Risk Levels</option>
+                        <option value="HIGH">High Risk (&lt; 60% or &ge; 5 Absences)</option>
+                        <option value="MEDIUM">Medium Risk (&lt; 75%)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted);">Sort:</label>
+                    <select id="hod-defaulter-sort" class="form-input form-input--sm" onchange="window.HODDashboard.onDefaulterSortChange(this.value)">
+                        <option value="att_asc">Attendance: Lowest First ⚠️</option>
+                        <option value="att_desc">Attendance: Highest First</option>
+                        <option value="abs_desc">Consecutive Absences: Most First ⚠️</option>
+                        <option value="name_asc">Name: A &rarr; Z</option>
+                        <option value="reg_asc">Reg No: Ascending</option>
+                    </select>
+                </div>
             </div>
             <div class="card__body" style="padding: 0;">
                 <div class="table-container" style="overflow-x: auto;">
                     <table class="attendance-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
                         <thead>
                             <tr>
-                                <th>Reg No</th>
-                                <th>Student Name</th>
+                                <th style="cursor: pointer;" onclick="window.HODDashboard.toggleDefaulterSort('regNo')">Reg No <span id="hsort-reg">↕</span></th>
+                                <th style="cursor: pointer;" onclick="window.HODDashboard.toggleDefaulterSort('name')">Student Name <span id="hsort-name">↕</span></th>
                                 <th>Year / Section</th>
-                                <th>Attendance %</th>
-                                <th>Consecutive Absent</th>
+                                <th style="cursor: pointer;" onclick="window.HODDashboard.toggleDefaulterSort('att')">Attendance % <span id="hsort-att">▲</span></th>
+                                <th style="cursor: pointer;" onclick="window.HODDashboard.toggleDefaulterSort('abs')">Consecutive Absent <span id="hsort-abs">↕</span></th>
                                 <th>Parent Phone</th>
                                 <th>Actions</th>
                             </tr>
@@ -244,14 +288,22 @@
             </div>
         </div>
 
-                <!-- Period Attendance Unlock Permissions Queue -->
+        <!-- Period Attendance Unlock Permissions Queue -->
         <div class="card" id="hod-unlock-card" style="margin-top: 2rem; margin-bottom: 2rem;">
-            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
                     <h3 style="margin: 0; font-size: 1.05rem;">Period Attendance Unlock & Late Marking Requests</h3>
                 </div>
-                <span id="hod-unlock-badge" class="badge badge--late">0 Pending</span>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <select id="unlock-status-filter" class="form-input form-input--sm" onchange="window.HODDashboard.onUnlockFilterChange(this.value)">
+                        <option value="ALL">All Status</option>
+                        <option value="pending">Pending Only</option>
+                        <option value="approved">Unlocked / Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <span id="hod-unlock-badge" class="badge badge--late">0 Pending</span>
+                </div>
             </div>
             <div class="card__body" style="padding: 0;">
                 <div class="table-container" style="overflow-x: auto;">
@@ -276,12 +328,21 @@
 
         <!-- On-Duty (OD) & Medical Exemption Approvals Queue -->
         <div class="card" style="margin-top: 2rem; margin-bottom: 2rem;">
-            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <div class="card__header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     <h3 style="margin: 0; font-size: 1.05rem;">Department On-Duty (OD) & Exemption Approvals</h3>
                 </div>
-                <span id="hod-od-badge" class="badge badge--present">0 Pending</span>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <select id="od-category-filter" class="form-input form-input--sm" onchange="window.HODDashboard.onODFilterChange(this.value)">
+                        <option value="ALL">All Categories</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Symposium">Symposium</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Placement">Placement</option>
+                    </select>
+                    <span id="hod-od-badge" class="badge badge--present">0 Pending</span>
+                </div>
             </div>
             <div class="card__body" style="padding: 0;">
                 <div class="table-container" style="overflow-x: auto;">
@@ -438,17 +499,17 @@
 
     <div id="toast-container"></div>
 
-    <script src="js/timetable.js?v=33"></script>
-    <script src="js/mock-data.js?v=33"></script>
-    <script src="js/auth.js?v=33"></script>
-    <script src="js/attendance.js?v=33"></script>
-    <script src="js/theme.js?v=33"></script>
-    <script src="js/audit-trail.js?v=33"></script>
-    <script src="js/od-exemption.js?v=33"></script>
-    <script src="js/reconciliation.js?v=33"></script>
-    <script src="js/warning-letter.js?v=33"></script>
-    <script src="js/hod.js?v=33"></script>
-    <script src="js/profile-modal.js?v=33"></script>
+    <script src="js/timetable.js?v=34"></script>
+    <script src="js/mock-data.js?v=34"></script>
+    <script src="js/auth.js?v=34"></script>
+    <script src="js/attendance.js?v=34"></script>
+    <script src="js/theme.js?v=34"></script>
+    <script src="js/audit-trail.js?v=34"></script>
+    <script src="js/od-exemption.js?v=34"></script>
+    <script src="js/reconciliation.js?v=34"></script>
+    <script src="js/warning-letter.js?v=34"></script>
+    <script src="js/hod.js?v=34"></script>
+    <script src="js/profile-modal.js?v=34"></script>
 </body>
 </html>
 
