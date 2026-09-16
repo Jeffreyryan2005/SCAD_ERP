@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Classes & Attendance — SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=36">
-    <link rel="stylesheet" href="css/base.css?v=36">
-    <link rel="stylesheet" href="css/components.css?v=36">
-    <link rel="stylesheet" href="css/layout.css?v=36">
+    <link rel="stylesheet" href="css/variables.css?v=37">
+    <link rel="stylesheet" href="css/base.css?v=37">
+    <link rel="stylesheet" href="css/components.css?v=37">
+    <link rel="stylesheet" href="css/layout.css?v=37">
     <style>
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
         #scheduleStrip { width: 100%; border-collapse: collapse; min-width: 650px; }
@@ -507,6 +507,24 @@
                         <span style="color:var(--color-text-muted);">Parent Ph:</span> <span id="profile-parent-phone">-</span>
                         <button id="profile-copy-phone" type="button" class="btn btn--icon" title="Copy Number" style="padding:2px 6px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                     </div>
+
+                    <!-- Mentor Oversight Details Card -->
+                    <div style="grid-column: 1 / -1; border-top: 1px solid var(--color-border); padding-top: 0.75rem; margin-top: 0.25rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Assigned Faculty Mentor</div>
+                            <div style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary); margin-top: 2px;">
+                                <span id="profile-mentor-name">Dr. S. Ramesh</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--color-text-muted);" id="profile-mentor-designation">Professor • Department of CSE</div>
+                        </div>
+                        <div id="profile-mentor-action-wrap" style="display: flex; gap: 0.4rem; align-items: center;">
+                            <span id="profile-mentor-status-badge" class="badge badge--present" style="font-size: 0.75rem;">Active Mentorship</span>
+                        </div>
+                    </div>
+                    <div id="profile-mentor-notes-box" style="grid-column: 1 / -1; background: var(--color-surface); border: 1px dashed var(--color-border); padding: 6px 10px; border-radius: 6px; font-size: 0.82rem;">
+                        <span style="color: var(--color-text-muted); font-weight: 600;">Mentoring Notes:</span>
+                        <span id="profile-mentor-notes" style="color: var(--color-text); margin-left: 4px;">Regular academic mentoring in progress.</span>
+                    </div>
                 </div>
 
                 <!-- Actions: SMS & Call -->
@@ -752,13 +770,13 @@
 
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=36"></script>
-    <script src="js/mock-data.js?v=36"></script>
-    <script src="js/auth.js?v=36"></script>
-    <script src="js/theme.js?v=36"></script>
-    <script src="js/reallocation.js?v=36"></script>
-    <script src="js/faculty.js?v=36"></script>
-    <script src="js/profile-modal.js?v=36"></script>
+    <script src="js/timetable.js?v=37"></script>
+    <script src="js/mock-data.js?v=37"></script>
+    <script src="js/auth.js?v=37"></script>
+    <script src="js/theme.js?v=37"></script>
+    <script src="js/reallocation.js?v=37"></script>
+    <script src="js/faculty.js?v=37"></script>
+    <script src="js/profile-modal.js?v=37"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();

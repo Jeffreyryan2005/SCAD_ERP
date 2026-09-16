@@ -35,6 +35,61 @@
             setEl('profile-phone-val', student.phone || '+91 98765 43210');
             setEl('profile-parent-name', student.parentName || 'Mr. ' + (student.name.split(' ')[0] || 'Parent'));
             setEl('profile-parent-phone', student.parentPhone || '+91 99887 76655');
+
+            // Mentor Details Lookup & Synchronization
+            const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+            let mentorId = student.mentorId;
+            let mentorName = student.mentorName;
+
+            let mentorFaculty = null;
+            if (mentorId) {
+                mentorFaculty = facList.find(f => f.id === mentorId || f.id.replace('faculty_', '') === mentorId);
+            }
+            if (!mentorFaculty && mentorName) {
+                mentorFaculty = facList.find(f => f.name.toLowerCase() === mentorName.toLowerCase());
+            }
+
+            const mName = mentorName || (mentorFaculty ? mentorFaculty.name : 'Unassigned');
+            const mDesig = mentorFaculty ? `${mentorFaculty.designation} • Department of ${mentorFaculty.dept}` : (student.department ? `Department of ${student.department}` : 'SCAD Faculty');
+            const mNotes = student.mentorNotes || 'Regular academic mentoring in progress.';
+
+            setEl('profile-mentor-name', mName);
+            setEl('profile-mentor-designation', mDesig);
+            setEl('profile-mentor-notes', mNotes);
+
+            const mentorBadge = document.getElementById('profile-mentor-status-badge');
+            if (mentorBadge) {
+                if (!mentorId || mentorId === 'unassigned' || mName === 'Unassigned') {
+                    mentorBadge.textContent = 'Unassigned';
+                    mentorBadge.className = 'badge badge--late';
+                } else {
+                    const prio = student.counselingPriority || 'Normal Track';
+                    mentorBadge.textContent = prio;
+                    mentorBadge.className = prio === 'High Priority Mentoring' ? 'badge badge--absent' : (prio === 'Attendance Risk' || prio === 'Academic Risk' ? 'badge badge--late' : 'badge badge--present');
+                }
+            }
+
+            const actionWrap = document.getElementById('profile-mentor-action-wrap');
+            if (actionWrap) {
+                if (mentorFaculty) {
+                    actionWrap.innerHTML = `<button type="button" class="btn btn--sm btn--outline" id="profile-view-mentor-btn" style="font-size:0.75rem; padding:3px 8px; cursor:pointer;" title="View all mentees under this staff member">View Mentor's Mentees</button>`;
+                    const viewBtn = document.getElementById('profile-view-mentor-btn');
+                    if (viewBtn) {
+                        viewBtn.onclick = () => {
+                            window.ProfileModal.close();
+                            if (window.HODDashboard && typeof window.HODDashboard.openStaffMenteesModal === 'function') {
+                                window.HODDashboard.openStaffMenteesModal(mentorFaculty.id);
+                            } else if (window.StaffManager && typeof window.StaffManager.openMenteesModal === 'function') {
+                                window.StaffManager.openMenteesModal(mentorFaculty.id);
+                            } else {
+                                window.location.href = `hod.html?mentorId=${mentorFaculty.id}`;
+                            }
+                        };
+                    }
+                } else {
+                    actionWrap.innerHTML = '';
+                }
+            }
             
             // Generate deterministic stats for this student
             let seed = 0;

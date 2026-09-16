@@ -5,40 +5,90 @@
         currentSort: 'name_asc',
         lastFiltered: [],
         
+        getStaffList: function() {
+            return this.staffList || [];
+        },
+
+        currentStaffModalFacultyId: null,
+        currentStaffMentees: [],
+        staffMenteeFilters: { search: '', year: 'ALL', status: 'ALL', sort: 'cgpa_desc' },
+
         openMenteesModal: function(staffId) {
+            this.currentStaffModalFacultyId = staffId;
             const staffList = this.getStaffList();
-            const staff = staffList.find(s => String(s.id) === String(staffId));
+            let staff = staffList.find(s => String(s.id) === String(staffId) || String(s.username) === String(staffId));
+            if (!staff) {
+                const facList = (window.Timetable && window.Timetable.FACULTY) || [];
+                const fac = facList.find(f => f.id === staffId || f.id.replace('faculty_', '') === staffId || f.username === staffId);
+                if (fac) {
+                    staff = {
+                        id: fac.id,
+                        name: fac.name,
+                        department: fac.dept,
+                        designation: fac.designation,
+                        role: 'faculty',
+                        username: fac.username
+                    };
+                }
+            }
             if (!staff) return;
 
             const modal = document.getElementById('menteesModal');
             const title = document.getElementById('menteesModalTitle');
             const subtitle = document.getElementById('menteesModalSubtitle');
-            const tbody = document.getElementById('menteesModalTableBody');
 
-            if (title) title.textContent = `Assigned Mentees`;
-            if (subtitle) subtitle.textContent = `Mentor: ${staff.name} (${staff.department} - ${staff.designation})`;
+            if (title) title.textContent = `${staff.name} — Mentee Portfolio`;
+            if (subtitle) subtitle.textContent = `${staff.designation || 'Faculty'} • Department of ${staff.department || staff.dept || 'CSE'} • Staff ID: ${staff.id || staff.username}`;
 
-            const mentees = (window.MockData && window.MockData.getMenteesForFaculty) ? window.MockData.getMenteesForFaculty(staff.id) : [];
+            // Load mentees for this staff member
+            let mentees = (window.MockData && window.MockData.getMenteesForFaculty) ? window.MockData.getMenteesForFaculty(staff.id) : [];
 
-            if (tbody) {
-                if (mentees.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No students assigned to this mentor yet.</td></tr>';
-                } else {
-                    tbody.innerHTML = mentees.map(m => {
-                        const attPct = Math.round(72 + (m.id % 25));
-                        const pctColor = attPct < 75 ? '#C62828' : '#2E7D32';
-                        return `<tr>
-                            <td><strong>${m.regNo}</strong></td>
-                            <td><a href="#" class="profile-btn" data-student-id="${m.id}" style="color:var(--color-primary); font-weight:600;">${m.name}</a></td>
-                            <td>Year ${m.year} (${m.section})</td>
-                            <td><span style="font-weight:700; color:${pctColor};">${attPct}%</span></td>
-                            <td><strong>${m.cgpa || '7.50'}</strong></td>
-                            <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears || 0}</span></td>
-                            <td><a href="tel:${(m.parentPhone || '').replace(/\s+/g, '')}">${m.parentPhone || '—'}</a></td>
-                        </tr>`;
-                    }).join('');
-                }
-            }
+            this.currentStaffMentees = mentees.map((m, idx) => {
+                const attPct = m.attendancePct !== undefined ? m.attendancePct : Math.round(74 + ((m.id || idx) % 24));
+                const cgpaVal = parseFloat(m.cgpa || (6.8 + ((m.id || idx) % 25) * 0.1).toFixed(2));
+                const arrearsVal = m.arrears !== undefined ? m.arrears : ((m.id || idx) % 6 === 0 ? 1 : 0);
+                const pPhone = m.parentPhone || `+91 94432 ${String(10000 + (m.id || idx) * 11).substring(0, 5)}`;
+                const notes = m.mentorNotes || 'Regular academic mentoring in progress.';
+                const priority = m.counselingPriority || ((arrearsVal > 0 || cgpaVal < 7.0 || attPct < 75) ? 'Academic Risk' : 'Normal Track');
+                return {
+                    ...m,
+                    attendancePct: attPct,
+                    cgpa: cgpaVal,
+                    arrears: arrearsVal,
+                    parentPhone: pPhone,
+                    mentorNotes: notes,
+                    counselingPriority: priority
+                };
+            });
+
+            // Update Metric Chips
+            const total = this.currentStaffMentees.length;
+            const defCount = this.currentStaffMentees.filter(m => m.attendancePct < 75).length;
+            const avgCgpa = total > 0 ? (this.currentStaffMentees.reduce((acc, m) => acc + m.cgpa, 0) / total).toFixed(2) : '0.00';
+            const totArrears = this.currentStaffMentees.reduce((acc, m) => acc + m.arrears, 0);
+
+            const elTotal = document.getElementById('menteesModalStatTotal');
+            const elDef = document.getElementById('menteesModalStatDefaulters');
+            const elCgpa = document.getElementById('menteesModalStatCgpa');
+            const elArr = document.getElementById('menteesModalStatArrears');
+
+            if (elTotal) elTotal.textContent = total;
+            if (elDef) elDef.textContent = defCount;
+            if (elCgpa) elCgpa.textContent = avgCgpa;
+            if (elArr) elArr.textContent = totArrears;
+
+            // Reset filters
+            this.staffMenteeFilters = { search: '', year: 'ALL', status: 'ALL', sort: 'cgpa_desc' };
+            const sIn = document.getElementById('menteesModalSearch');
+            const yEl = document.getElementById('menteesModalYear');
+            const stEl = document.getElementById('menteesModalStatus');
+            const soEl = document.getElementById('menteesModalSort');
+            if (sIn) sIn.value = '';
+            if (yEl) yEl.value = 'ALL';
+            if (stEl) stEl.value = 'ALL';
+            if (soEl) soEl.value = 'cgpa_desc';
+
+            this.renderStaffMenteesTable();
 
             if (modal) modal.style.display = 'block';
         },
@@ -46,6 +96,110 @@
         closeMenteesModal: function() {
             const modal = document.getElementById('menteesModal');
             if (modal) modal.style.display = 'none';
+        },
+
+        onStaffMenteeSearch: function(val) {
+            this.staffMenteeFilters.search = (val || '').trim().toLowerCase();
+            this.renderStaffMenteesTable();
+        },
+
+        onStaffMenteeFilterChange: function() {
+            const yEl = document.getElementById('menteesModalYear');
+            const stEl = document.getElementById('menteesModalStatus');
+            if (yEl) this.staffMenteeFilters.year = yEl.value;
+            if (stEl) this.staffMenteeFilters.status = stEl.value;
+            this.renderStaffMenteesTable();
+        },
+
+        onStaffMenteeSortChange: function(val) {
+            this.staffMenteeFilters.sort = val || 'cgpa_desc';
+            this.renderStaffMenteesTable();
+        },
+
+        renderStaffMenteesTable: function() {
+            const tbody = document.getElementById('menteesModalTableBody');
+            if (!tbody) return;
+
+            let list = [...this.currentStaffMentees];
+
+            // Filter search
+            if (this.staffMenteeFilters.search) {
+                const q = this.staffMenteeFilters.search;
+                list = list.filter(m => (m.name && m.name.toLowerCase().includes(q)) || (m.regNo && m.regNo.toLowerCase().includes(q)));
+            }
+
+            // Filter year
+            if (this.staffMenteeFilters.year !== 'ALL') {
+                list = list.filter(m => String(m.year) === String(this.staffMenteeFilters.year));
+            }
+
+            // Filter status
+            if (this.staffMenteeFilters.status === 'DEFAULTER') {
+                list = list.filter(m => m.attendancePct < 75);
+            } else if (this.staffMenteeFilters.status === 'GOOD') {
+                list = list.filter(m => m.attendancePct >= 80);
+            } else if (this.staffMenteeFilters.status === 'HAS_ARREARS') {
+                list = list.filter(m => m.arrears > 0);
+            }
+
+            // Sort
+            list.sort((a, b) => {
+                switch (this.staffMenteeFilters.sort) {
+                    case 'cgpa_desc': return b.cgpa - a.cgpa;
+                    case 'cgpa_asc': return a.cgpa - b.cgpa;
+                    case 'att_desc': return b.attendancePct - a.attendancePct;
+                    case 'att_asc': return a.attendancePct - b.attendancePct;
+                    case 'arrears_desc': return b.arrears - a.arrears;
+                    case 'name_asc': return (a.name || '').localeCompare(b.name || '');
+                    default: return b.cgpa - a.cgpa;
+                }
+            });
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:1.5rem; color:var(--color-text-muted);">No student records match the selected filters.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = list.map(m => {
+                const attPct = m.attendancePct;
+                const pctColor = attPct < 75 ? '#C62828' : (attPct < 80 ? '#F57C00' : '#2E7D32');
+                const badgeClass = m.counselingPriority === 'High Priority Mentoring' ? 'badge badge--absent' : (m.counselingPriority === 'Academic Risk' || m.counselingPriority === 'Attendance Risk' ? 'badge badge--late' : 'badge badge--present');
+
+                return `<tr>
+                    <td><strong>${m.regNo}</strong></td>
+                    <td>
+                        <a href="#" class="profile-btn" data-student-id="${m.id}" style="color:var(--color-primary); font-weight:600; text-decoration:none;" title="Click to view student profile and mentor history">${m.name}</a>
+                    </td>
+                    <td>Year ${m.year} (${m.section})</td>
+                    <td><span style="font-weight:700; color:${pctColor};">${attPct}%</span></td>
+                    <td><strong>${m.cgpa.toFixed(2)}</strong></td>
+                    <td><span style="color:${m.arrears > 0 ? '#C62828' : '#2E7D32'}; font-weight:600;">${m.arrears}</span></td>
+                    <td><a href="tel:${(m.parentPhone || '').replace(/\s+/g, '')}">${m.parentPhone || '—'}</a></td>
+                    <td><span class="${badgeClass}" style="font-size:0.75rem;">${m.counselingPriority}</span></td>
+                    <td>
+                        <button type="button" class="btn btn--sm btn--outline profile-btn" data-student-id="${m.id}" style="font-size:0.75rem; padding:3px 8px;">View Profile</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        },
+
+        exportStaffMenteesCSV: function() {
+            if (!this.currentStaffMentees || this.currentStaffMentees.length === 0) {
+                this.showToast('No mentee records available to export.');
+                return;
+            }
+            let csv = 'Reg No,Student Name,Department,Year,Section,Attendance %,CGPA,Arrears,Parent Phone,Mentoring Priority,Mentoring Notes\n';
+            this.currentStaffMentees.forEach(m => {
+                csv += `"${m.regNo}","${m.name}","${m.department || ''}","${m.year}","${m.section}","${m.attendancePct}%","${m.cgpa}","${m.arrears}","${m.parentPhone}","${m.counselingPriority}","${(m.mentorNotes || '').replace(/"/g, '""')}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `mentees_${this.currentStaffModalFacultyId || 'staff'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            this.showToast('Mentee portfolio exported to CSV.');
         },
 
         init: function () {
@@ -204,12 +358,13 @@
                 const roleColor = s.role === 'hod' ? '#1565C0' : '#2E7D32';
                 html += `<tr>
                     <td><strong>${s.username || ''}</strong></td>
-                    <td>${s.name || ''}</td>
+                    <td><a href="#" onclick="event.preventDefault(); window.StaffManager.openMenteesModal('${s.id}')" style="color:var(--color-primary); font-weight:600; text-decoration:none;" title="Click to view staff details and assigned mentees" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${s.name || ''}</a></td>
                     <td>${s.department || ''}</td>
                     <td>${s.designation || ''}</td>
                     <td style="color:${roleColor}; text-transform:uppercase; font-size:0.85em; font-weight:bold;">${s.role || ''}</td>
                     <td>
-                        <button type="button" class="btn btn--sm btn--outline" onclick="window.StaffManager.openModal('${s.id}')">Edit</button>
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.StaffManager.openMenteesModal('${s.id}')" title="View mentees portfolio">Mentees</button>
+                        <button type="button" class="btn btn--sm btn--outline" style="margin-left:4px" onclick="window.StaffManager.openModal('${s.id}')">Edit</button>
                         <button type="button" class="btn btn--sm btn--outline" style="margin-left:4px" onclick="window.StaffManager.resetPassword('${s.id}')">Reset Pass</button>
                         <button type="button" class="btn btn--sm btn--danger" style="margin-left:4px" onclick="window.StaffManager.deleteStaff('${s.id}')">Del</button>
                     </td>
