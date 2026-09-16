@@ -307,3 +307,205 @@
     width: 100% !important;
   }
 }
+
+/* ==========================================================================
+   ENTERPRISE RESPONSIVE MOBILE PERFECTION (Tablets & Smartphones)
+   ========================================================================== */
+
+/* Universal Modal Responsiveness */
+@media (max-width: 768px) {
+  .modal-card,
+  .modal__card,
+  .unlock-modal-card {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 94% !important;
+    max-width: 94% !important;
+    max-height: 94vh !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .modal-header {
+    padding: 1rem 1.25rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modal-header h3 {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .modal-body {
+    padding: 1rem 1.25rem !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex: 1 1 auto !important;
+  }
+
+  .modal-footer {
+    padding: 0.85rem 1.25rem !important;
+    flex-shrink: 0 !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+
+  /* OD Remarks Modal & Batch OD Mobile Refinements */
+  #odRemarksModal .modal-card,
+  #batchODModal .modal-card {
+    width: 95% !important;
+    max-width: 95% !important;
+  }
+
+  .batch-od-item {
+    padding: 6px 8px !important;
+    font-size: 0.85rem !important;
+    min-height: 38px !important;
+  }
+
+  /* Period Marking Toolbar Responsiveness */
+  .attendance-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .attendance-header > div {
+    width: 100% !important;
+    display: flex !important;
+    gap: 0.5rem !important;
+  }
+
+  .attendance-header button {
+    flex: 1 !important;
+    min-height: 40px !important;
+  }
+
+  #period-student-search {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .attendance-btn-group button {
+    min-height: 40px !important;
+    touch-action: manipulation;
+  }
+
+  /* Mentee Portfolio Modal Responsiveness */
+  #menteesModal .modal-card,
+  #hodStaffMenteesModal .modal-card {
+    width: 96% !important;
+    max-width: 96% !important;
+  }
+
+  #menteesModal div[style*="grid-template-columns:repeat(auto-fit, minmax(160px, 1fr))"],
+  #hodStaffMenteesModal div[style*="grid-template-columns:repeat(auto-fit, minmax(160px, 1fr))"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  #menteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"],
+  #hodStaffMenteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.6rem !important;
+  }
+
+  #menteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] > div,
+  #hodStaffMenteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] > div {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  #menteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] select,
+  #menteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] input,
+  #hodStaffMenteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] select,
+  #hodStaffMenteesModal div[style*="justify-content:space-between"][style*="flex-wrap:wrap"] input {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Staff Table Filters on Mobile */
+  .search-box {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+
+  .search-box select,
+  .search-box input {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* Tables horizontal touch scrolling */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+  }
+}
+
+/* Small Smartphone (< 540px) */
+@media (max-width: 540px) {
+  /* Profile Modal Info Grid Stacking */
+  #profile-modal div[style*="grid-template-columns:1fr 1fr"],
+  #profile-modal div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Profile Modal Attendance Overview Stacking */
+  #profile-modal div[style*="justify-content: space-between"][style*="align-items: center"] {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  #profile-modal div[style*="grid-template-columns: repeat(2, 1fr)"] {
+    width: 100% !important;
+  }
+
+  /* Monthly Attendance Calendar on Small Screen */
+  #calendar-container {
+    gap: 3px !important;
+  }
+
+  .calendar-cell {
+    font-size: 0.72rem !important;
+  }
+
+  /* Modal Footer Buttons Stack on Small Mobile */
+  .modal-footer button {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 42px !important;
+  }
+
+  .modal-footer div[style*="display:flex"] {
+    width: 100% !important;
+    flex-direction: column !important;
+  }
+
+  /* Mentee metric chips 1-col on very small screens */
+  #menteesModal div[style*="grid-template-columns:repeat(auto-fit, minmax(160px, 1fr))"],
+  #hodStaffMenteesModal div[style*="grid-template-columns:repeat(auto-fit, minmax(160px, 1fr))"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* OD Note badge wrapping */
+  .badge--od {
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+    font-size: 0.72rem !important;
+  }
+}
+

@@ -1187,6 +1187,9 @@ textarea.form-input {
   background-color: rgba(33, 150, 243, 0.15);
   color: #1976D2;
   border: 1px solid rgba(33, 150, 243, 0.3);
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.35;
 }
 
 .badge--bunk {
