@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - SCAD</title>
-    <link rel="stylesheet" href="css/variables.css?v=37">
-    <link rel="stylesheet" href="css/base.css?v=37">
-    <link rel="stylesheet" href="css/components.css?v=37">
-    <link rel="stylesheet" href="css/layout.css?v=37">
+    <link rel="stylesheet" href="css/variables.css?v=38">
+    <link rel="stylesheet" href="css/base.css?v=38">
+    <link rel="stylesheet" href="css/components.css?v=38">
+    <link rel="stylesheet" href="css/layout.css?v=38">
     <style>
         .profile-card {
             display: flex; gap: 2rem; background: var(--color-surface);
@@ -106,6 +106,7 @@
         }
         .timeline-item.present { border-left: 3px solid #4CAF50; }
         .timeline-item.absent { border-left: 3px solid #F44336; }
+        .timeline-item.od { border-left: 3px solid #1976D2; background: rgba(33, 150, 243, 0.06); }
         .timeline-item.current { border-left: 3px solid var(--color-primary); background: rgba(27, 94, 32, 0.06); }
         .badge.present, .badge.badge--success { background: rgba(76, 175, 80, 0.15); color: #2E7D32; }
         .badge.absent, .badge.badge--danger { background: rgba(244, 67, 54, 0.15); color: #C62828; }
@@ -294,11 +295,11 @@
         </main>
     </div>
 
-    <script src="js/timetable.js?v=37"></script>
-    <script src="js/mock-data.js?v=37"></script>
-    <script src="js/auth.js?v=37"></script>
-    <script src="js/theme.js?v=37"></script>
-    <script src="js/student.js?v=37"></script>
+    <script src="js/timetable.js?v=38"></script>
+    <script src="js/mock-data.js?v=38"></script>
+    <script src="js/auth.js?v=38"></script>
+    <script src="js/theme.js?v=38"></script>
+    <script src="js/student.js?v=38"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Student page uses its own sidebar, not setupCommonUI
@@ -320,6 +321,6 @@
             }
         });
     </script>
-    <script src="js/profile-modal.js?v=37"></script>
+    <script src="js/profile-modal.js?v=38"></script>
 </body>
 </html>

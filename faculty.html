@@ -7,10 +7,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Classes & Attendance — SCAD ERP</title>
-    <link rel="stylesheet" href="css/variables.css?v=37">
-    <link rel="stylesheet" href="css/base.css?v=37">
-    <link rel="stylesheet" href="css/components.css?v=37">
-    <link rel="stylesheet" href="css/layout.css?v=37">
+    <link rel="stylesheet" href="css/variables.css?v=38">
+    <link rel="stylesheet" href="css/base.css?v=38">
+    <link rel="stylesheet" href="css/components.css?v=38">
+    <link rel="stylesheet" href="css/layout.css?v=38">
     <style>
         .schedule-table-wrap { width: 100%; overflow-x: auto; margin-bottom: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--color-border); }
         #scheduleStrip { width: 100%; border-collapse: collapse; min-width: 650px; }
@@ -249,6 +249,10 @@
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.openBatchODModal()" title="Mark multiple students OD with common remarks" style="display:inline-flex; align-items:center; gap:4px; color:#1976D2; border-color:rgba(25,118,210,0.4);">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                        Batch OD
+                                    </button>
                                     <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.markAllAbsent()" title="Mark all students absent">All Absent</button>
                                     <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.invertAttendance()" title="Invert Present / Absent">Invert</button>
                                 </div>
@@ -768,15 +772,150 @@
         </div>
     </div>
 
+    <!-- Record On-Duty (OD) Exemption Remarks Modal -->
+    <div id="odRemarksModal" class="modal" style="display:none;">
+        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1100;" onclick="window.FacultyDashboard.closeODRemarksModal()"></div>
+        <div class="modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--color-surface, #fff); z-index:1101; width:92%; max-width:540px; max-height:90vh; overflow-y:auto; border-radius:12px; box-shadow:0 10px 32px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; font-size:1.15rem; color:var(--color-text);">On-Duty (OD) Exemption Remarks</h3>
+                    <p id="odModalStudentSub" style="margin:4px 0 0 0; font-size:0.85rem; color:var(--color-text-muted);">Period X • Student Name (Reg No)</p>
+                </div>
+                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeODRemarksModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--color-text-muted);">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+                <input type="hidden" id="odModalStudentId">
+
+                <!-- Reason Category -->
+                <div>
+                    <label class="form-label" for="odModalCategory" style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">OD Exemption Category <span style="color:#C62828;">*</span></label>
+                    <select id="odModalCategory" class="form-input form-input--full" onchange="window.FacultyDashboard.onODCategoryChange(this.value)">
+                        <option value="Symposium">Technical Symposium / Paper Presentation</option>
+                        <option value="Sports">College Sports / Inter-College Tournament</option>
+                        <option value="Placement">Placement Drive / Campus Interview / Training</option>
+                        <option value="Cultural / NSS">NSS / NCC / Institutional Cultural Activity</option>
+                        <option value="Medical">Medical / Hospitalization Leave Exemption</option>
+                        <option value="Department Duty">Department Official Duty / Lab Assignment</option>
+                        <option value="External Exam">University / External Examination</option>
+                        <option value="Other">Other Authorized Institutional Duty</option>
+                    </select>
+                </div>
+
+                <!-- Quick Tags -->
+                <div>
+                    <div style="font-size:0.75rem; color:var(--color-text-muted); margin-bottom:6px; font-weight:600;">Quick Presets:</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setODPresetRemark('Paper Presentation at National Symposium')" style="font-size:0.75rem; padding:3px 8px;">Paper Presentation</button>
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setODPresetRemark('Zonal Inter-College Sports Tournament')" style="font-size:0.75rem; padding:3px 8px;">Zonal Sports</button>
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setODPresetRemark('On-Campus Placement Recruitment Drive')" style="font-size:0.75rem; padding:3px 8px;">Placement Drive</button>
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setODPresetRemark('NSS Blood Donation Camp / Special Camp Duty')" style="font-size:0.75rem; padding:3px 8px;">NSS Camp</button>
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setODPresetRemark('Hospital Visit with Medical Certificate')" style="font-size:0.75rem; padding:3px 8px;">Medical Cert</button>
+                        <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.setODPresetRemark('Department Project Expo & Lab Setup')" style="font-size:0.75rem; padding:3px 8px;">Project Expo</button>
+                    </div>
+                </div>
+
+                <!-- Remarks Textarea -->
+                <div>
+                    <label class="form-label" for="odModalRemarks" style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">OD Remarks / Justification <span style="color:#C62828;">*</span></label>
+                    <textarea id="odModalRemarks" class="form-input form-input--full" rows="3" placeholder="Enter official reason, institution, event details or authorization note..." style="resize:vertical; min-height:75px;" required></textarea>
+                </div>
+
+                <!-- Reference No. (Optional) -->
+                <div>
+                    <label class="form-label" for="odModalRef" style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Reference / Approval Letter # (Optional)</label>
+                    <input type="text" id="odModalRef" class="form-input form-input--full" placeholder="e.g., SCAD/CSE/OD/2026/042 or Letter Ref">
+                </div>
+
+                <!-- File official registry copy checkbox -->
+                <div style="display:flex; align-items:center; gap:8px; background:var(--color-bg); padding:8px 12px; border-radius:6px; border:1px solid var(--color-border);">
+                    <input type="checkbox" id="odModalSyncRegistry" checked style="cursor:pointer; width:16px; height:16px;">
+                    <label for="odModalSyncRegistry" style="font-size:0.82rem; color:var(--color-text); cursor:pointer; margin:0;">
+                        File into Institutional OD Exemption Registry (visible to HOD & Attendance Committee)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+                <button type="button" class="btn btn--sm btn--outline" id="odModalClearBtn" onclick="window.FacultyDashboard.clearStudentOD()" style="color:#C62828; border-color:rgba(198,40,40,0.4); display:none;">Clear OD (Mark Present)</button>
+                <div style="display:flex; gap:0.5rem; margin-left:auto;">
+                    <button type="button" class="btn btn--secondary" onclick="window.FacultyDashboard.closeODRemarksModal()">Cancel</button>
+                    <button type="button" class="btn btn--primary" onclick="window.FacultyDashboard.saveODRemarks()">Save OD Remarks</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch On-Duty (OD) Remarks Modal -->
+    <div id="batchODModal" class="modal" style="display:none;">
+        <div class="modal-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1100;" onclick="window.FacultyDashboard.closeBatchODModal()"></div>
+        <div class="modal-card" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--color-surface, #fff); z-index:1101; width:92%; max-width:640px; max-height:92vh; overflow-y:auto; border-radius:12px; box-shadow:0 10px 32px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; font-size:1.15rem; color:var(--color-text);">Batch On-Duty (OD) Marking</h3>
+                    <p id="batchODModalSub" style="margin:4px 0 0 0; font-size:0.85rem; color:var(--color-text-muted);">Mark multiple students On-Duty with a shared remark</p>
+                </div>
+                <button type="button" class="btn btn--icon" onclick="window.FacultyDashboard.closeBatchODModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--color-text-muted);">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+                <!-- Student selection list with search and select all -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-weight:600; font-size:0.85rem;">Select Students for OD (<span id="batchODSelectedCount">0</span> selected)</label>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.toggleBatchODSelectAll(true)" style="font-size:0.72rem; padding:2px 6px;">Select All</button>
+                            <button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.toggleBatchODSelectAll(false)" style="font-size:0.72rem; padding:2px 6px;">Deselect All</button>
+                        </div>
+                    </div>
+                    <div style="position:relative; margin-bottom:8px;">
+                        <input type="text" id="batchODSearch" class="form-input form-input--sm form-input--full" placeholder="Quick search students..." oninput="window.FacultyDashboard.filterBatchODList(this.value)">
+                    </div>
+                    <div id="batchODStudentsList" style="max-height:160px; overflow-y:auto; border:1px solid var(--color-border); border-radius:6px; padding:6px 10px; background:var(--color-bg); display:flex; flex-direction:column; gap:4px;">
+                        <!-- Student checkbox items rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- OD Category -->
+                <div>
+                    <label class="form-label" for="batchODCategory" style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">OD Category <span style="color:#C62828;">*</span></label>
+                    <select id="batchODCategory" class="form-input form-input--full" onchange="window.FacultyDashboard.onBatchODCategoryChange(this.value)">
+                        <option value="Symposium">Technical Symposium / Paper Presentation</option>
+                        <option value="Sports">College Sports / Inter-College Tournament</option>
+                        <option value="Placement">Placement Drive / Campus Interview / Training</option>
+                        <option value="Cultural / NSS">NSS / NCC / Institutional Cultural Activity</option>
+                        <option value="Medical">Medical / Hospitalization Leave Exemption</option>
+                        <option value="Department Duty">Department Official Duty / Lab Assignment</option>
+                        <option value="External Exam">University / External Examination</option>
+                        <option value="Other">Other Authorized Institutional Duty</option>
+                    </select>
+                </div>
+
+                <!-- Batch Remarks -->
+                <div>
+                    <label class="form-label" for="batchODRemarks" style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Shared OD Remarks / Event Description <span style="color:#C62828;">*</span></label>
+                    <textarea id="batchODRemarks" class="form-input form-input--full" rows="2" placeholder="e.g., Zonal Inter-College Football Tournament, Anna University Sports Board" required></textarea>
+                </div>
+
+                <!-- Reference -->
+                <div>
+                    <label class="form-label" for="batchODRef" style="font-weight:600; font-size:0.85rem; margin-bottom:4px; display:block;">Reference / Letter No. (Optional)</label>
+                    <input type="text" id="batchODRef" class="form-input form-input--full" placeholder="e.g., PD/SPORTS/2026/012">
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; justify-content:flex-end; gap:0.5rem;">
+                <button type="button" class="btn btn--secondary" onclick="window.FacultyDashboard.closeBatchODModal()">Cancel</button>
+                <button type="button" class="btn btn--primary" onclick="window.FacultyDashboard.applyBatchOD()">Apply Batch OD</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" style="display:none; position:fixed; bottom:20px; right:20px; background:#333; color:#fff; padding:12px 24px; border-radius:8px; z-index:9999; font-weight:500;"></div>
 
-    <script src="js/timetable.js?v=37"></script>
-    <script src="js/mock-data.js?v=37"></script>
-    <script src="js/auth.js?v=37"></script>
-    <script src="js/theme.js?v=37"></script>
-    <script src="js/reallocation.js?v=37"></script>
-    <script src="js/faculty.js?v=37"></script>
-    <script src="js/profile-modal.js?v=37"></script>
+    <script src="js/timetable.js?v=38"></script>
+    <script src="js/mock-data.js?v=38"></script>
+    <script src="js/auth.js?v=38"></script>
+    <script src="js/theme.js?v=38"></script>
+    <script src="js/reallocation.js?v=38"></script>
+    <script src="js/faculty.js?v=38"></script>
+    <script src="js/profile-modal.js?v=38"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (window.Auth) window.Auth.setupCommonUI();

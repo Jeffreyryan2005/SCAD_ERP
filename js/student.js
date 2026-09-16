@@ -177,19 +177,40 @@
                     const savedAtt = localStorage.getItem(storageKey);
                     
                     let isPresent = null;
+                    let isOD = false;
+                    let odNote = '';
                     if (savedAtt) {
                         const parsed = JSON.parse(savedAtt);
                         if (parsed[this.user.studentId] !== undefined) {
-                            isPresent = parsed[this.user.studentId] === 'present';
+                            const rawStatus = parsed[this.user.studentId];
+                            if (rawStatus === 'od') {
+                                isOD = true;
+                                const remarksKey = `scad_period_od_remarks_${this.todayStr}_${groupKey}_${p.num}`;
+                                const savedRemarks = localStorage.getItem(remarksKey);
+                                if (savedRemarks) {
+                                    try {
+                                        const remMap = JSON.parse(savedRemarks);
+                                        if (remMap[this.user.studentId]) {
+                                            odNote = remMap[this.user.studentId];
+                                        }
+                                    } catch(e) {}
+                                }
+                            } else {
+                                isPresent = rawStatus === 'present';
+                            }
                         }
                     } 
                     
                     // 2. Fall back to mock data
-                    if (isPresent === null && mockAtt[p.num] !== undefined) {
+                    if (!isOD && isPresent === null && mockAtt[p.num] !== undefined) {
                         isPresent = mockAtt[p.num] === 'present';
                     }
 
-                    if (isPresent === true) {
+                    if (isOD) {
+                        statusClass = 'od';
+                        statusIcon = '';
+                        statusText = odNote ? `On-Duty: ${odNote}` : 'On-Duty (Exempted)';
+                    } else if (isPresent === true) {
                         statusClass = 'present';
                         statusIcon = '';
                         statusText = 'Present';

@@ -10,6 +10,7 @@
         dateMode: 'today',
         currentView: 'schedule',
         odRemarksState: {},
+        currentODStudentId: null,
         schedule: [],
         currentPeriodSelection: null,
         attendanceState: {},
@@ -815,6 +816,294 @@
             this.renderAttendanceTable();
         },
 
+        openODRemarksModal: function(studentId) {
+            const student = (this.studentsList || []).find(s => String(s.id) === String(studentId));
+            if (!student) return;
+
+            this.currentODStudentId = student.id;
+
+            const pNum = this.selectedPeriod ? (this.selectedPeriod.period.num || this.selectedPeriod.period) : 'Period';
+            const subTitleEl = document.getElementById('odModalStudentSub');
+            if (subTitleEl) {
+                subTitleEl.textContent = `Period ${pNum} • ${student.name} (${student.regNo}) • ${student.department || ''}`;
+            }
+
+            const sidInput = document.getElementById('odModalStudentId');
+            if (sidInput) sidInput.value = student.id;
+
+            const existingRemark = this.odRemarksState[student.id] || '';
+            const remarksInput = document.getElementById('odModalRemarks');
+            const categorySelect = document.getElementById('odModalCategory');
+            const refInput = document.getElementById('odModalRef');
+            const clearBtn = document.getElementById('odModalClearBtn');
+
+            // Parse existing remark if formatted as "Category: Remark [Ref: XYZ]"
+            if (existingRemark) {
+                let cat = 'Symposium';
+                let rem = existingRemark;
+                let ref = '';
+
+                const refMatch = rem.match(/\[Ref:\s*([^\]]+)\]/);
+                if (refMatch) {
+                    ref = refMatch[1].trim();
+                    rem = rem.replace(/\[Ref:\s*[^\]]+\]/, '').trim();
+                }
+
+                const colonIdx = rem.indexOf(':');
+                if (colonIdx > -1) {
+                    const candidateCat = rem.substring(0, colonIdx).trim();
+                    const afterColon = rem.substring(colonIdx + 1).trim();
+                    if (['Symposium', 'Sports', 'Placement', 'Cultural / NSS', 'Medical', 'Department Duty', 'External Exam', 'Other'].includes(candidateCat)) {
+                        cat = candidateCat;
+                        rem = afterColon;
+                    }
+                }
+
+                if (categorySelect) categorySelect.value = cat;
+                if (remarksInput) remarksInput.value = rem;
+                if (refInput) refInput.value = ref;
+                if (clearBtn) clearBtn.style.display = 'inline-block';
+            } else {
+                if (categorySelect) categorySelect.value = 'Symposium';
+                if (remarksInput) remarksInput.value = 'Participating in Technical Symposium / Paper Presentation';
+                if (refInput) refInput.value = '';
+                if (clearBtn) clearBtn.style.display = 'none';
+            }
+
+            const modal = document.getElementById('odRemarksModal');
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeODRemarksModal: function() {
+            const modal = document.getElementById('odRemarksModal');
+            if (modal) modal.style.display = 'none';
+            this.currentODStudentId = null;
+        },
+
+        onODCategoryChange: function(cat) {
+            const remInput = document.getElementById('odModalRemarks');
+            if (!remInput) return;
+
+            const defaults = {
+                'Symposium': 'Participating in Technical Symposium / Paper Presentation',
+                'Sports': 'Representing College in Sports / Inter-College Tournament',
+                'Placement': 'Attending On-Campus / Off-Campus Placement Drive & Interview',
+                'Cultural / NSS': 'Special Duty for NSS / NCC / Institutional Cultural Event',
+                'Medical': 'Medical Leave / Health Center Treatment with Medical Certificate',
+                'Department Duty': 'Department Official Work / Laboratory Experiment Setup',
+                'External Exam': 'Appearing for University / External Examination',
+                'Other': 'Authorized Institutional On-Duty Exemption'
+            };
+
+            const cur = remInput.value.trim();
+            const isDefault = Object.values(defaults).some(d => d.toLowerCase() === cur.toLowerCase()) || cur === '';
+            if (isDefault && defaults[cat]) {
+                remInput.value = defaults[cat];
+            }
+        },
+
+        setODPresetRemark: function(text) {
+            const remInput = document.getElementById('odModalRemarks');
+            if (!remInput) return;
+            remInput.value = text;
+        },
+
+        saveODRemarks: function() {
+            if (!this.currentODStudentId) return;
+            const studentId = this.currentODStudentId;
+            const student = (this.studentsList || []).find(s => String(s.id) === String(studentId));
+
+            const catEl = document.getElementById('odModalCategory');
+            const remEl = document.getElementById('odModalRemarks');
+            const refEl = document.getElementById('odModalRef');
+            const syncEl = document.getElementById('odModalSyncRegistry');
+
+            const cat = catEl ? catEl.value : 'Symposium';
+            const remarkText = remEl ? remEl.value.trim() : '';
+            const refText = refEl ? refEl.value.trim() : '';
+
+            if (!remarkText) {
+                this.showToast('Please enter an OD remark / exemption description.');
+                return;
+            }
+
+            const finalRemark = `${cat}: ${remarkText}${refText ? ' [Ref: ' + refText + ']' : ''}`;
+
+            this.odRemarksState[studentId] = finalRemark;
+            this.attendanceState[studentId] = 'od';
+
+            // Sync with ODExemption module if checked
+            if (syncEl && syncEl.checked && window.ODExemption && typeof window.ODExemption.createRequest === 'function') {
+                const year = this.currentDate.getFullYear();
+                const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                const day = String(this.currentDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
+                const pNum = this.selectedPeriod ? Number(this.selectedPeriod.period.num || this.selectedPeriod.period) : 1;
+
+                window.ODExemption.createRequest(studentId, dateStr, [pNum], cat, remarkText, refText);
+            }
+
+            this.closeODRemarksModal();
+            this.updateSummary();
+            this.renderAttendanceTable();
+            this.showToast(`OD recorded for ${student ? student.name : 'student'}`);
+        },
+
+        clearStudentOD: function() {
+            if (!this.currentODStudentId) return;
+            const studentId = this.currentODStudentId;
+            const student = (this.studentsList || []).find(s => String(s.id) === String(studentId));
+
+            this.attendanceState[studentId] = 'present';
+            delete this.odRemarksState[studentId];
+
+            this.closeODRemarksModal();
+            this.updateSummary();
+            this.renderAttendanceTable();
+            this.showToast(`OD cleared. ${student ? student.name : 'Student'} marked Present.`);
+        },
+
+        openBatchODModal: function() {
+            if (!this.studentsList || this.studentsList.length === 0) {
+                this.showToast('No students loaded for this period.');
+                return;
+            }
+
+            const pNum = this.selectedPeriod ? (this.selectedPeriod.period.num || this.selectedPeriod.period) : 'Period';
+            const subTitleEl = document.getElementById('batchODModalSub');
+            if (subTitleEl) {
+                subTitleEl.textContent = `Period ${pNum} • ${this.selectedPeriod.classLabel || this.selectedPeriod.classGroup} • Select students to mark On-Duty`;
+            }
+
+            const listContainer = document.getElementById('batchODStudentsList');
+            if (listContainer) {
+                listContainer.innerHTML = this.studentsList.map(s => {
+                    const isAlreadyOD = this.attendanceState[s.id] === 'od';
+                    return `
+                        <label class="batch-od-item" data-name="${(s.name || '').toLowerCase()}" data-reg="${(s.regNo || '').toLowerCase()}" style="display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:0.85rem; user-select:none;">
+                            <input type="checkbox" class="batch-od-check" value="${s.id}" ${isAlreadyOD ? 'checked' : ''} onchange="window.FacultyDashboard.updateBatchODCount()" style="cursor:pointer; width:15px; height:15px;">
+                            <span style="font-weight:600; min-width:110px;">${s.regNo}</span>
+                            <span style="flex:1;">${s.name}</span>
+                            ${isAlreadyOD ? '<span class="badge badge--od" style="font-size:0.7rem; padding:1px 6px;">Already OD</span>' : ''}
+                        </label>
+                    `;
+                }).join('');
+            }
+
+            this.updateBatchODCount();
+
+            const catSelect = document.getElementById('batchODCategory');
+            if (catSelect) catSelect.value = 'Symposium';
+
+            const remInput = document.getElementById('batchODRemarks');
+            if (remInput) remInput.value = 'Participating in Technical Symposium / Paper Presentation';
+
+            const refInput = document.getElementById('batchODRef');
+            if (refInput) refInput.value = '';
+
+            const sInput = document.getElementById('batchODSearch');
+            if (sInput) sInput.value = '';
+
+            const modal = document.getElementById('batchODModal');
+            if (modal) modal.style.display = 'block';
+        },
+
+        closeBatchODModal: function() {
+            const modal = document.getElementById('batchODModal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        updateBatchODCount: function() {
+            const checks = document.querySelectorAll('.batch-od-check:checked');
+            const countEl = document.getElementById('batchODSelectedCount');
+            if (countEl) countEl.textContent = checks.length;
+        },
+
+        toggleBatchODSelectAll: function(selectAll) {
+            const checks = document.querySelectorAll('.batch-od-check');
+            checks.forEach(c => {
+                const parent = c.closest('.batch-od-item');
+                if (parent && parent.style.display !== 'none') {
+                    c.checked = selectAll;
+                }
+            });
+            this.updateBatchODCount();
+        },
+
+        filterBatchODList: function(query) {
+            const q = (query || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.batch-od-item');
+            items.forEach(item => {
+                const name = item.getAttribute('data-name') || '';
+                const reg = item.getAttribute('data-reg') || '';
+                if (!q || name.includes(q) || reg.includes(q)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        },
+
+        onBatchODCategoryChange: function(cat) {
+            const remInput = document.getElementById('batchODRemarks');
+            if (!remInput) return;
+            const defaults = {
+                'Symposium': 'Participating in Technical Symposium / Paper Presentation',
+                'Sports': 'Representing College in Sports / Inter-College Tournament',
+                'Placement': 'Attending On-Campus / Off-Campus Placement Drive & Interview',
+                'Cultural / NSS': 'Special Duty for NSS / NCC / Institutional Cultural Event',
+                'Medical': 'Medical Leave / Health Center Treatment with Medical Certificate',
+                'Department Duty': 'Department Official Work / Laboratory Experiment Setup',
+                'External Exam': 'Appearing for University / External Examination',
+                'Other': 'Authorized Institutional On-Duty Exemption'
+            };
+            if (defaults[cat]) remInput.value = defaults[cat];
+        },
+
+        applyBatchOD: function() {
+            const checks = Array.from(document.querySelectorAll('.batch-od-check:checked'));
+            if (checks.length === 0) {
+                this.showToast('Please select at least one student.');
+                return;
+            }
+
+            const catEl = document.getElementById('batchODCategory');
+            const remEl = document.getElementById('batchODRemarks');
+            const refEl = document.getElementById('batchODRef');
+
+            const cat = catEl ? catEl.value : 'Symposium';
+            const remarkText = remEl ? remEl.value.trim() : '';
+            const refText = refEl ? refEl.value.trim() : '';
+
+            if (!remarkText) {
+                this.showToast('Please enter an OD remark / event description.');
+                return;
+            }
+
+            const finalRemark = `${cat}: ${remarkText}${refText ? ' [Ref: ' + refText + ']' : ''}`;
+
+            const year = this.currentDate.getFullYear();
+            const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(this.currentDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            const pNum = this.selectedPeriod ? Number(this.selectedPeriod.period.num || this.selectedPeriod.period) : 1;
+
+            checks.forEach(c => {
+                const sId = c.value;
+                this.attendanceState[sId] = 'od';
+                this.odRemarksState[sId] = finalRemark;
+
+                if (window.ODExemption && typeof window.ODExemption.createRequest === 'function') {
+                    window.ODExemption.createRequest(sId, dateStr, [pNum], cat, remarkText, refText);
+                }
+            });
+
+            this.closeBatchODModal();
+            this.updateSummary();
+            this.renderAttendanceTable();
+            this.showToast(`Batch OD recorded for ${checks.length} students.`);
+        },
+
         startClock: function() {
             const clockEl = document.getElementById('header-date');
             if(!clockEl) return;
@@ -1238,8 +1527,14 @@
                 let nameHtml = `<a href="#" class="profile-btn" data-student-id="${student.id}" style="color:var(--color-primary); font-weight:500; text-decoration:none;">${student.name}</a>`;
                 
                 // Strictly render OD Note only when status is 'od'
-                if (status === 'od' && this.odRemarksState[student.id]) {
-                    nameHtml += `<br><span class="badge badge--od" style="margin-top:3px; font-size:0.75rem; display:inline-block;">OD Note: ${this.odRemarksState[student.id]}</span>`;
+                if (status === 'od') {
+                    const odText = this.odRemarksState[student.id] || 'On-Duty Exemption';
+                    const safeOdText = odText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const editBtnHtml = isMarked ? '' : `<button type="button" class="btn btn--sm btn--outline" onclick="window.FacultyDashboard.openODRemarksModal('${student.id}')" style="font-size:0.72rem; padding:1px 6px; line-height:1.2; border-color:rgba(25,118,210,0.4); color:#1976D2; margin-left:6px; cursor:pointer;" title="Edit OD remarks">Edit Note</button>`;
+                    nameHtml += `<div style="margin-top:4px; display:inline-flex; align-items:center; flex-wrap:wrap; gap:4px;">
+                        <span class="badge badge--od" style="font-size:0.75rem; display:inline-block;" title="${safeOdText}">OD: ${safeOdText}</span>
+                        ${editBtnHtml}
+                    </div>`;
                 }
 
                 const override = overrides[student.id];
@@ -1287,14 +1582,7 @@
 
                 btnOD.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const existingRemark = this.odRemarksState[student.id] || '';
-                    const remark = prompt(`Enter On-Duty (OD) / Exemption Reason for ${student.name}:`, existingRemark || 'Technical Symposium / Sports / Medical');
-                    if (remark !== null) {
-                        this.odRemarksState[student.id] = remark.trim() || 'On-Duty Exemption';
-                        this.attendanceState[student.id] = 'od';
-                        this.updateSummary();
-                        this.renderAttendanceTable();
-                    }
+                    this.openODRemarksModal(student.id);
                 });
 
                 tbody.appendChild(tr);
@@ -1336,10 +1624,22 @@
                     else if (this.attendanceState[k] === 'absent') aCount++;
                     else if (this.attendanceState[k] === 'od') oCount++;
                 }
+                let odDetails = '';
+                if (oCount > 0) {
+                    const odNames = [];
+                    for (const sId in this.attendanceState) {
+                        if (this.attendanceState[sId] === 'od') {
+                            const st = (this.studentsList || []).find(s => String(s.id) === String(sId));
+                            const rem = this.odRemarksState[sId] ? ` (${this.odRemarksState[sId]})` : '';
+                            odNames.push((st ? st.name : sId) + rem);
+                        }
+                    }
+                    odDetails = ` [OD: ${odNames.join('; ')}]`;
+                }
                 window.AuditLogger.log(
                     'ATTENDANCE_UPDATED',
                     `${periodData.classGroup} (Period ${pNum})`,
-                    `Updated attendance: ${pCount} Present, ${aCount} Absent, ${oCount} On-Duty on ${dateStr}`
+                    `Updated attendance: ${pCount} Present, ${aCount} Absent, ${oCount} On-Duty on ${dateStr}${odDetails}`
                 );
             }
             
