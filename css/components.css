@@ -1409,3 +1409,25 @@ th:hover .sort-indicator {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+
+
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .sidebar-close-btn {
+    display: inline-flex !important;
+  }
+}
