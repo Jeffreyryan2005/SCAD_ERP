@@ -8,15 +8,79 @@
   min-height: 100vh;
 }
 
+/* Interior Pages Ambient Campus Watermark */
+body:not(.login-page)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('../assets/campus.jpg');
+  background-position: center 25%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.035;
+  filter: grayscale(15%);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] body:not(.login-page)::before,
+body[data-theme="dark"]:not(.login-page)::before {
+  opacity: 0.048;
+  filter: grayscale(35%) brightness(0.9);
+}
+
 /* ---- LOGIN PAGE LAYOUT ---- */
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 1.5rem !important;
-  background: var(--color-bg) !important;
   box-sizing: border-box;
+  position: relative;
+  background-color: #0b1d12 !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Campus background photo with clean architectural framing */
+.login-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('../assets/campus.jpg');
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* Subtle cinematic veil to provide depth, contrast, and make the login card pop */
+.login-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 30, 20, 0.32) 0%,
+    rgba(10, 20, 30, 0.20) 50%,
+    rgba(15, 25, 35, 0.40) 100%
+  );
+  transition: background 0.3s ease;
+}
+
+[data-theme="dark"].login-page::after,
+[data-theme="dark"] .login-page::after {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 15, 26, 0.62) 0%,
+    rgba(15, 23, 42, 0.52) 50%,
+    rgba(10, 15, 26, 0.72) 100%
+  );
 }
 
 .login-theme-toggle {
@@ -28,6 +92,8 @@
 
 /* Main Content */
 .main-content {
+  position: relative;
+  z-index: 1;
   padding: 1.5rem 2rem;
   margin-top: var(--header-height, 64px);
   margin-left: var(--sidebar-width, 260px);
