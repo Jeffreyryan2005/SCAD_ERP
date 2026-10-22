@@ -13,10 +13,11 @@ body:not(.login-page)::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url('../assets/campus.jpg');
+  background-image: url('../assets/campus.webp'), url('../assets/campus.jpg');
   background-position: center 25%;
   background-size: cover;
   background-repeat: no-repeat;
+  image-rendering: -webkit-optimize-contrast;
   opacity: 0.035;
   filter: grayscale(15%);
   pointer-events: none;
@@ -45,15 +46,17 @@ body[data-theme="dark"]:not(.login-page)::before {
   overflow-y: auto;
 }
 
-/* Campus background photo with clean architectural framing */
+/* Campus background photo with clean architectural framing & 4K UHD clarity */
 .login-page::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url('../assets/campus.jpg');
+  background-image: url('../assets/campus.webp'), url('../assets/campus.jpg');
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
   z-index: 0;
 }
 
