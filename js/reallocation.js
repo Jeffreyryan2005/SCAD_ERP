@@ -49,6 +49,22 @@
             return requests.filter(r => r.toFacultyId === facultyId && r.status === 'pending');
         },
 
+        getPendingRequestsForFaculty: function (facultyId, date) {
+            const reqs = this.getIncomingRequests(facultyId);
+            if (date) {
+                return reqs.filter(r => r.date === date);
+            }
+            return reqs;
+        },
+
+        respondToRequest: function (requestId, status) {
+            if (status === 'accepted') {
+                return this.acceptRequest(requestId);
+            } else {
+                return this.declineRequest(requestId);
+            }
+        },
+
         /**
          * Get outgoing requests created by a faculty (to see status updates)
          */

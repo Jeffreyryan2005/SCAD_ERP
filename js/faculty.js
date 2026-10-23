@@ -172,11 +172,13 @@
         },
 
         init: function() {
+            if (this.initialized) return;
             // Require faculty role
             if(window.Auth && window.Auth.requireAuth) {
                 this.user = window.Auth.requireAuth('faculty');
             }
             if (!this.user) return;
+            this.initialized = true;
 
             // Init Theme
             if(window.Theme && window.Theme.init) window.Theme.init();
@@ -1301,21 +1303,27 @@
         },
 
         renderIncomingReallocations: function() {
-            const container = document.getElementById('incomingReallocations');
-            const list = document.getElementById('reallocRequestsList');
-            if(!container || !list || !window.Reallocation) return;
+            try {
+                const container = document.getElementById('incomingReallocations');
+                const list = document.getElementById('reallocRequestsList');
+                if(!container || !list || !window.Reallocation) return;
 
-            const year = this.currentDate.getFullYear();
-            const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
-            const day = String(this.currentDate.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
+                const year = this.currentDate.getFullYear();
+                const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+                const day = String(this.currentDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
 
-            const pending = window.Reallocation.getPendingRequestsForFaculty(this.user.facultyId, dateStr);
+                let pending = [];
+                if (typeof window.Reallocation.getPendingRequestsForFaculty === 'function') {
+                    pending = window.Reallocation.getPendingRequestsForFaculty(this.user.facultyId, dateStr);
+                } else if (typeof window.Reallocation.getIncomingRequests === 'function') {
+                    pending = window.Reallocation.getIncomingRequests(this.user.facultyId).filter(function(r) { return r.date === dateStr; });
+                }
 
-            if(pending.length === 0) {
-                container.style.display = 'none';
-                return;
-            }
+                if(!pending || pending.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
 
             container.style.display = 'block';
             list.innerHTML = '';
@@ -1355,6 +1363,9 @@
 
                 list.appendChild(card);
             });
+            } catch(e) {
+                console.warn('Could not render incoming reallocations:', e);
+            }
         },
 
         selectPeriod: function(pNum) {
@@ -1664,7 +1675,7 @@
                 else if (this.attendanceState[k] === 'absent') aCount++;
                 else if (this.attendanceState[k] === 'od') oCount++;
             }
-            this.showToast(Attendance recorded:  Present,  Absent,  On-Duty);
+            this.showToast('Attendance recorded: ' + pCount + ' Present, ' + aCount + ' Absent, ' + oCount + ' On-Duty');
             this.loadPeriodAttendance(periodData);
             this.renderScheduleStrip();
         },
