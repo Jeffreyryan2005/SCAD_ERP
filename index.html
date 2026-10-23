@@ -8,10 +8,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SCAD College of Engineering & Technology — Biometric Attendance Management System">
     <title>SCAD Attendance System — Login</title>
-    <link rel="stylesheet" href="css/variables.css?v=45">
-    <link rel="stylesheet" href="css/base.css?v=45">
-    <link rel="stylesheet" href="css/components.css?v=45">
-    <link rel="stylesheet" href="css/layout.css?v=45">
+        <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#1B5E20">
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SCAD Attendance ERP">
+    <meta property="og:title" content="SCAD Attendance ERP — Institutional Portal Login">
+    <meta property="og:description" content="Official biometric and academic attendance ERP portal for SCAD College of Engineering & Technology. Secure login for Students, Faculty, and Administrators.">
+    <meta property="og:image" content="assets/og-image.png">
+
+    <link rel="stylesheet" href="css/variables.css?v=46">
+    <link rel="stylesheet" href="css/base.css?v=46">
+    <link rel="stylesheet" href="css/components.css?v=46">
+    <link rel="stylesheet" href="css/layout.css?v=46">
     <style>
         .force-pwd-overlay {
             display: none;
@@ -78,7 +93,7 @@
         }
     </style>
 </head>
-<body class="login-page" data-theme="light" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: var(--color-bg); margin: 0;">
+<body class="login-page" data-theme="light">
 
     <button id="theme-toggle-btn" class="theme-toggle login-theme-toggle" aria-label="Switch to dark mode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
 
@@ -123,6 +138,33 @@
         </div>
     </div>
 
+    <footer class="login-page-footer">
+        <p class="login-footer-address">
+            <strong>SCAD College of Engineering &amp; Technology</strong> &bull; Cheranmahadevi, Tirunelveli &mdash; 627414, Tamil Nadu, India<br>
+            Affiliated to Anna University, Chennai &bull; Approved by AICTE &bull; ISO 9001:2015 Certified
+        </p>
+        <p class="login-footer-links">
+            <a href="privacy.html">Privacy Policy</a> &bull;
+            <a href="terms.html">Terms of Service</a> &bull;
+            <a href="mailto:it.support@scadengineering.ac.in">IT Support</a> &bull;
+            <span>Tel: +91 4634 260315</span>
+        </p>
+        <p class="login-footer-copy">&copy; 2026 SCAD CET. Authorized Academic &amp; Administrative Use Only.</p>
+    </footer>
+
+    <!-- Cookie & Session Security Notice Banner -->
+    <div id="session-notice-banner" class="session-notice-banner" style="display: none;">
+        <div class="session-notice-content">
+            <span class="session-notice-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </span>
+            <div class="session-notice-text">
+                <strong>Institutional Security Notice:</strong> This academic portal uses encrypted session storage to maintain authentication and role access. By proceeding, you acknowledge compliance with institutional data governance, our <a href="privacy.html">Privacy Policy</a>, and <a href="terms.html">Terms of Service</a>.
+            </div>
+            <button id="accept-notice-btn" class="btn btn--primary session-notice-btn" type="button">Acknowledge</button>
+        </div>
+    </div>
+
     <div id="force-pwd-overlay" class="force-pwd-overlay">
         <div class="force-pwd-card">
             <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Set Your New Password</h2>
@@ -163,10 +205,10 @@
         </div>
     </div>
 
-    <script src="js/timetable.js?v=45"></script>
-    <script src="js/mock-data.js?v=45"></script>
-    <script src="js/theme.js?v=45"></script>
-    <script src="js/auth.js?v=45"></script>
+    <script src="js/timetable.js?v=46"></script>
+    <script src="js/mock-data.js?v=46"></script>
+    <script src="js/theme.js?v=46"></script>
+    <script src="js/auth.js?v=46"></script>
     <script>
         function fillDemo(user, pass) {
             document.getElementById('login-username').value = user;
@@ -223,6 +265,19 @@
                 Theme.toggle();
             });
 
+            // Cookie / Session Notice Banner Handler
+            var noticeBanner = document.getElementById('session-notice-banner');
+            var acceptNoticeBtn = document.getElementById('accept-notice-btn');
+            if (noticeBanner && !localStorage.getItem('scad_session_notice_accepted')) {
+                noticeBanner.style.display = 'block';
+            }
+            if (acceptNoticeBtn) {
+                acceptNoticeBtn.addEventListener('click', function () {
+                    localStorage.setItem('scad_session_notice_accepted', 'true');
+                    if (noticeBanner) noticeBanner.style.display = 'none';
+                });
+            }
+
             document.getElementById('login-form').addEventListener('submit', function (e) {
                 e.preventDefault();
                 var username = document.getElementById('login-username').value.trim();
@@ -236,7 +291,16 @@
                     return;
                 }
 
-                var result = Auth.login(username, password);
+                // Visual button loading state
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="btn-spinner"></span> Authenticating...';
+
+                setTimeout(function() {
+                    var result = Auth.login(username, password);
+                    if (!result.user) {
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = 'Login';
+                    }
 
                 if (result.user) {
                     if (result.user.mustChangePassword) {
@@ -273,6 +337,7 @@
                     card.offsetHeight;
                     card.style.animation = 'shake 0.4s ease';
                 }
+                }, 250);
             });
 
             // Populate security questions
@@ -324,6 +389,6 @@
             });
         });
     </script>
-    <script src="js/profile-modal.js?v=45"></script>
+    <script src="js/profile-modal.js?v=46"></script>
 </body>
 </html>

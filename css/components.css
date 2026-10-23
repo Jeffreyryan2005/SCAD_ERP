@@ -1431,3 +1431,168 @@ th:hover .sort-indicator {
     display: inline-flex !important;
   }
 }
+
+
+/* =============================================
+   SCAD ERP — Enterprise Polish & Production Assets
+   ============================================= */
+
+/* ---- BUTTON LOADING STATE ---- */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  border-top-color: #FFFFFF;
+  animation: btnSpinnerRotate 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes btnSpinnerRotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- INSTITUTIONAL FOOTER (Login & App Portal) ---- */
+.login-page-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 520px;
+  width: 100%;
+}
+
+.login-page-footer strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.login-footer-links {
+  margin: 0.5rem 0;
+}
+
+.login-page-footer a, .app-portal-footer a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.login-page-footer a:hover, .app-portal-footer a:hover {
+  text-decoration: underline;
+}
+
+.app-portal-footer {
+  margin-top: 3.5rem;
+  padding: 1.5rem 0 1rem 0;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.app-portal-footer strong {
+  color: var(--color-text);
+}
+
+/* ---- SESSION NOTICE / COOKIE BANNER ---- */
+.session-notice-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-primary);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  padding: 0.85rem 1.5rem;
+  animation: slideUpNotice 0.3s ease-out;
+}
+
+.session-notice-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.session-notice-icon {
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.session-notice-text {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.session-notice-text a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.session-notice-btn {
+  padding: 8px 18px !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@keyframes slideUpNotice {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 680px) {
+  .session-notice-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .session-notice-btn {
+    width: 100%;
+    text-align: center;
+  }
+  .app-portal-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* ---- STICKY MOBILE ATTENDANCE CTA ---- */
+@media (max-width: 768px) {
+  .attendance-actions-toolbar {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 50;
+    background: var(--color-surface);
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--color-border);
+    width: 100%;
+    box-sizing: border-box;
+    display: flex !important;
+    gap: 0.5rem;
+  }
+  .attendance-actions-toolbar .btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px !important;
+    font-size: 0.85rem !important;
+  }
+}

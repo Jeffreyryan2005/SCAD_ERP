@@ -1,0 +1,28 @@
+# ==============================================================
+# SCAD College of Engineering & Technology — Attendance ERP
+# Robots Configuration & Crawler Directives
+# ==============================================================
+
+User-agent: *
+# Public & Information Pages
+Allow: /index.html
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /404.html
+Allow: /assets/
+
+# Secure Authenticated Portals (Strict Disallow)
+Disallow: /admin-timetable.html
+Disallow: /change-password.html
+Disallow: /dashboard.html
+Disallow: /faculty.html
+Disallow: /hod.html
+Disallow: /notifications.html
+Disallow: /reports.html
+Disallow: /staff.html
+Disallow: /student.html
+Disallow: /students.html
+Disallow: /js/
+
+# Institutional Sitemap
+Sitemap: https://scadengineering.ac.in/attendance/sitemap.xml

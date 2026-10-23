@@ -6,11 +6,26 @@
     <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCAD Attendance Dashboard</title>
-    <link rel="stylesheet" href="css/variables.css?v=45">
-    <link rel="stylesheet" href="css/base.css?v=45">
-    <link rel="stylesheet" href="css/components.css?v=45">
-    <link rel="stylesheet" href="css/layout.css?v=45">
+    <meta name="description" content="College-wide biometric attendance analytics, daily percentages, departmental comparisons, and real-time defaulter lists for SCAD CET.">
+    <title>Institutional Attendance Dashboard — SCAD ERP</title>
+        <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#1B5E20">
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SCAD Attendance ERP">
+    <meta property="og:image" content="assets/og-image.png">
+    <meta property="og:title" content="Institutional Attendance Dashboard — SCAD ERP">
+    <meta property="og:description" content="College-wide biometric attendance analytics, daily percentages, departmental comparisons, and real-time defaulter lists for SCAD CET.">
+    <link rel="stylesheet" href="css/variables.css?v=46">
+    <link rel="stylesheet" href="css/base.css?v=46">
+    <link rel="stylesheet" href="css/components.css?v=46">
+    <link rel="stylesheet" href="css/layout.css?v=46">
 </head>
 <body class="app-layout" data-theme="light">
     <!-- Sidebar -->
@@ -23,7 +38,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <aside id="sidebar" class="sidebar">
         <div class="sidebar__logo">
-            <img src="assets/logo.png" alt="SCAD Logo" onerror="this.style.display='none'">
+            <img src="assets/logo.png" alt="SCAD College of Engineering &amp; Technology Crest" onerror="this.style.display='none'">
             <div class="sidebar__logo-text">
                 <h2>SCAD</h2>
                 <small>ERP System</small>
@@ -365,7 +380,20 @@
                     </div>
                 </div>
             </div>
-                    </main>
+                    
+        <footer class="app-portal-footer">
+            <div class="footer-left">
+                <strong>SCAD College of Engineering &amp; Technology</strong> &bull; Cheranmahadevi, Tirunelveli &mdash; 627414, Tamil Nadu
+            </div>
+            <div class="footer-links">
+                <a href="privacy.html">Privacy Policy</a> &bull;
+                <a href="terms.html">Terms of Service</a> &bull;
+                <a href="mailto:it.support@scadengineering.ac.in">IT Helpdesk</a> &bull;
+                <span>&copy; 2026 SCAD CET</span>
+            </div>
+        </footer>
+
+    </main>
     </div>
 
     <!-- Edit Modal -->
@@ -533,17 +561,17 @@
 
     <div id="toast-container" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 200; display: flex; flex-direction: column; gap: 0.75rem;"></div>
 
-    <script src="js/timetable.js?v=45"></script>
-    <script src="js/mock-data.js?v=45"></script>
-    <script src="js/auth.js?v=45"></script>
-    <script src="js/attendance.js?v=45"></script>
-    <script src="js/theme.js?v=45"></script>
-    <script src="js/charts.js?v=45"></script>
-        <script src="js/audit-trail.js?v=45"></script>
-    <script src="js/od-exemption.js?v=45"></script>
-    <script src="js/reconciliation.js?v=45"></script>
-    <script src="js/warning-letter.js?v=45"></script>
-    <script src="js/dashboard.js?v=45"></script>
-    <script src="js/profile-modal.js?v=45"></script>
+    <script src="js/timetable.js?v=46"></script>
+    <script src="js/mock-data.js?v=46"></script>
+    <script src="js/auth.js?v=46"></script>
+    <script src="js/attendance.js?v=46"></script>
+    <script src="js/theme.js?v=46"></script>
+    <script src="js/charts.js?v=46"></script>
+        <script src="js/audit-trail.js?v=46"></script>
+    <script src="js/od-exemption.js?v=46"></script>
+    <script src="js/reconciliation.js?v=46"></script>
+    <script src="js/warning-letter.js?v=46"></script>
+    <script src="js/dashboard.js?v=46"></script>
+    <script src="js/profile-modal.js?v=46"></script>
 </body>
 </html>

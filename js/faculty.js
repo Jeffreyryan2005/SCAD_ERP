@@ -1658,7 +1658,13 @@
             localStorage.removeItem(unlockKey);
 
             // Refresh period to lock in Read-Only mode immediately
-            this.showToast('Attendance submitted & locked successfully!');
+            let pCount = 0, aCount = 0, oCount = 0;
+            for (const k in this.attendanceState) {
+                if (this.attendanceState[k] === 'present') pCount++;
+                else if (this.attendanceState[k] === 'absent') aCount++;
+                else if (this.attendanceState[k] === 'od') oCount++;
+            }
+            this.showToast(Attendance recorded:  Present,  Absent,  On-Duty);
             this.loadPeriodAttendance(periodData);
             this.renderScheduleStrip();
         },

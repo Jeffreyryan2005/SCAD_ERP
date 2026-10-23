@@ -11,7 +11,9 @@
 /* ---- LOGIN PAGE LAYOUT ---- */
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex !important;
+  flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 1.5rem !important;
