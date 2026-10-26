@@ -1,0 +1,452 @@
+/* =============================================
+   SCAD ERP — Inbuilt Local AI Assistant Styles
+   ============================================= */
+
+/* Floating AI Launcher Button */
+.scad-ai-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  height: 50px;
+  padding: 0 18px 0 14px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 20px rgba(27, 94, 32, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 1050;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scad-ai-fab:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(27, 94, 32, 0.45), 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+}
+
+.scad-ai-fab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.scad-ai-fab__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  animation: aiPulse 2.5s infinite;
+}
+
+.scad-ai-fab__text {
+  white-space: nowrap;
+}
+
+.scad-ai-fab__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #c8962e;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+@keyframes aiPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.9; }
+}
+
+/* AI Copilot Chat Window */
+.scad-ai-window {
+  display: none;
+  position: fixed;
+  bottom: 86px;
+  right: 24px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: calc(100vh - 120px);
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1060;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: inherit;
+  animation: aiFadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scad-ai-window.open {
+  display: flex;
+}
+
+@keyframes aiFadeUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+.scad-ai-header {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.scad-ai-header__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.scad-ai-header__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.scad-ai-header__info {
+  min-width: 0;
+}
+
+.scad-ai-header__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scad-ai-header__subtitle {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scad-ai-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scad-ai-btn-icon {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  padding: 0;
+}
+
+.scad-ai-btn-icon:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* Chat Messages Area */
+.scad-ai-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-bg, #f8f9fa);
+}
+
+/* Suggestion Chips */
+.scad-ai-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.scad-ai-chip {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  color: var(--color-primary, #1b5e20);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.scad-ai-chip:hover {
+  background: var(--color-primary, #1b5e20);
+  color: #ffffff;
+  border-color: var(--color-primary, #1b5e20);
+  transform: translateY(-1px);
+}
+
+/* Message Bubbles */
+.scad-ai-msg {
+  display: flex;
+  gap: 8px;
+  max-width: 88%;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  animation: aiMsgIn 0.2s ease;
+}
+
+@keyframes aiMsgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scad-ai-msg--user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.scad-ai-msg--bot {
+  align-self: flex-start;
+}
+
+.scad-ai-msg__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-primary, #1b5e20);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.scad-ai-msg__bubble {
+  padding: 9px 13px;
+  border-radius: 14px;
+  position: relative;
+  word-break: break-word;
+}
+
+.scad-ai-msg--user .scad-ai-msg__bubble {
+  background: var(--color-primary, #1b5e20);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.scad-ai-msg--bot .scad-ai-msg__bubble {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #2c3e50);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.scad-ai-msg__bubble p {
+  margin: 0 0 6px 0;
+}
+
+.scad-ai-msg__bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.scad-ai-msg__bubble ul {
+  margin: 4px 0 6px 16px;
+  padding: 0;
+}
+
+.scad-ai-msg__bubble li {
+  margin-bottom: 3px;
+}
+
+.scad-ai-msg__bubble strong {
+  color: var(--color-text, #111827);
+}
+
+.scad-ai-msg--user .scad-ai-msg__bubble strong {
+  color: #ffffff;
+}
+
+.scad-ai-msg__badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 2px 0;
+}
+
+.scad-ai-msg__badge--ok { background: #E8F5E9; color: #2E7D32; }
+.scad-ai-msg__badge--warn { background: #FFF3E0; color: #E65100; }
+.scad-ai-msg__badge--danger { background: #FFEBEE; color: #C62828; }
+
+.scad-ai-msg__btn-link {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: var(--color-primary, #1b5e20);
+  color: #ffffff !important;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: opacity 0.15s;
+}
+
+.scad-ai-msg__btn-link:hover {
+  opacity: 0.9;
+}
+
+/* Typing Indicator */
+.scad-ai-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.scad-ai-typing span {
+  width: 6px;
+  height: 6px;
+  background: var(--color-text-muted, #888);
+  border-radius: 50%;
+  animation: aiTyping 1.2s infinite;
+}
+
+.scad-ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.scad-ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes aiTyping {
+  0%, 100% { transform: scale(0.6); opacity: 0.4; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* Footer / Input Area */
+.scad-ai-footer {
+  padding: 8px 12px 10px 12px;
+  background: var(--color-surface, #ffffff);
+  border-top: 1px solid var(--color-border, #e0e0e0);
+  flex-shrink: 0;
+}
+
+.scad-ai-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scad-ai-input {
+  flex: 1;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+  background: var(--color-bg, #f8f9fa);
+  color: var(--color-text, #2c3e50);
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.scad-ai-input:focus {
+  border-color: var(--color-primary, #1b5e20);
+  background: #ffffff;
+}
+
+.scad-ai-send {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary, #1b5e20);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.scad-ai-send:hover {
+  background: #2e7d32;
+  transform: scale(1.05);
+}
+
+.scad-ai-send:active {
+  transform: scale(0.95);
+}
+
+.scad-ai-disclaimer {
+  font-size: 0.68rem;
+  color: var(--color-text-muted, #888);
+  text-align: center;
+  margin-top: 6px;
+  line-height: 1.2;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .scad-ai-fab {
+    bottom: 16px;
+    right: 16px;
+    height: 44px;
+    padding: 0 14px 0 10px;
+    font-size: 0.85rem;
+  }
+  
+  .scad-ai-window {
+    right: 12px;
+    left: 12px;
+    bottom: 72px;
+    width: auto;
+    max-width: none;
+    height: 500px;
+    max-height: calc(100vh - 90px);
+  }
+}
