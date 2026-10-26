@@ -67,7 +67,7 @@
       container.innerHTML = `
         <div style="text-align:center; border-bottom:2px solid #1b5e20; padding-bottom:1.25rem; margin-bottom:1.5rem;">
           <h2 style="margin:0 0 4px 0; color:#1b5e20; font-size:1.45rem; letter-spacing:0.5px; text-transform:uppercase;">SCAD College of Engineering and Technology</h2>
-          <p style="margin:0 0 2px 0; font-size:0.85rem; color:#555;">(An Autonomous Institution | Affiliated to Anna University, Chennai)</p>
+          <p style="margin:0 0 2px 0; font-size:0.85rem; color:#555;">(Affiliated to Anna University, Chennai | Approved by AICTE)</p>
           <p style="margin:0; font-size:0.82rem; color:#666;">Cheranmahadevi, Tirunelveli District, Tamil Nadu — 627 414</p>
         </div>
 

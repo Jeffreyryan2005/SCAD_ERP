@@ -105,14 +105,17 @@
         },
 
         /**
-         * Check and expire old pending requests (> 30 mins)
+         * Check and expire old pending requests (8h for today, 48h for advance)
          */
         checkExpired: function () {
             const requests = getRequests();
             let changed = false;
             const now = Date.now();
+            const todayStr = new Date().toISOString().split('T')[0];
             requests.forEach(r => {
-                if (r.status === 'pending' && (now - r.timestamp > 30 * 60 * 1000)) {
+                const isAdvance = r.date > todayStr;
+                const expireMs = isAdvance ? 48 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
+                if (r.status === 'pending' && (now - r.timestamp > expireMs)) {
                     r.status = 'expired';
                     changed = true;
                 }

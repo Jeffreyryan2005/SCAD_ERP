@@ -1138,31 +1138,48 @@
                 if(window.Reallocation) {
                     const fromReqs = window.Reallocation.getReallocatedPeriodsFromFaculty(this.user.facultyId, dateStr);
                     fromReqs.forEach(req => {
-                        this.schedule = this.schedule.filter(s => {
-                            const pNum = s.period.num || s.period;
-                            return !(pNum === req.period && s.classGroup === req.classGroup);
-                        });
+                        const existingIdx = this.schedule.findIndex(s => Number(s.period.num || s.period) === Number(req.period));
+                        if (existingIdx !== -1) {
+                            const pObj = this.schedule[existingIdx].period;
+                            this.schedule[existingIdx] = {
+                                period: pObj,
+                                subjectCode: 'FREE',
+                                subjectName: 'Reallocated Out',
+                                classGroup: '',
+                                classLabel: '-',
+                                type: 'free',
+                                reallocatedOut: true
+                            };
+                        }
                     });
 
                     const toReqs = window.Reallocation.getReallocatedPeriodsForFaculty(this.user.facultyId, dateStr);
                     toReqs.forEach(req => {
-                        const classSched = window.Timetable.getClassSchedule(req.classGroup, dateStr);
-                        if(classSched) {
-                            const subjectInfo = classSched[req.period - 1];
-                            if(subjectInfo) {
-                                this.schedule.push({
-                                    period: req.period,
-                                    classGroup: req.classGroup,
-                                    classLabel: req.classGroup.replace(/-/g, ' '),
-                                    subjectCode: subjectInfo.code,
-                                    subjectName: subjectInfo.name + ' (Reallocated)',
-                                    type: subjectInfo.type
-                                });
-                            }
+                        const classSched = (window.Timetable && typeof window.Timetable.getClassSchedule === 'function')
+                            ? window.Timetable.getClassSchedule(req.classGroup, dateStr) 
+                            : [];
+                        const subjectInfo = classSched[req.period - 1];
+                        const periodObj = (window.Timetable.PERIODS || []).find(p => p.num === Number(req.period)) || { num: req.period, start: '09:00', end: '09:50' };
+                        const existingIdx = this.schedule.findIndex(s => Number(s.period.num || s.period) === Number(req.period));
+                        const subCode = subjectInfo ? (subjectInfo.subjectCode || subjectInfo.code || 'SUB') : 'SUB';
+                        const subName = subjectInfo ? (subjectInfo.subjectName || subjectInfo.name || 'Period Substitution') : 'Period Substitution';
+                        const reallocItem = {
+                            period: periodObj,
+                            classGroup: req.classGroup,
+                            classLabel: req.classGroup.replace(/-/g, ' '),
+                            subjectCode: subCode,
+                            subjectName: subName + ' (Reallocated)',
+                            type: subjectInfo ? (subjectInfo.type || 'theory') : 'theory',
+                            isReallocated: true
+                        };
+                        if (existingIdx !== -1) {
+                            this.schedule[existingIdx] = reallocItem;
+                        } else {
+                            this.schedule.push(reallocItem);
                         }
                     });
 
-                    this.schedule.sort((a, b) => (a.period.num || a.period) - (b.period.num || b.period));
+                    this.schedule.sort((a, b) => Number(a.period.num || a.period) - Number(b.period.num || b.period));
                 }
             }
             
@@ -1266,15 +1283,24 @@
                         markBtnClass = 'btn btn--sm btn--primary';
                     }
 
+                    let reallocBtnHtml = `<button class="btn btn--sm btn--outline realloc-btn">${this.dateMode === 'today' ? 'Reallocate' : 'Advance Reallocate'}</button>`;
+                    if (window.Reallocation && typeof window.Reallocation.getOutgoingRequests === 'function') {
+                        const outReqs = window.Reallocation.getOutgoingRequests(this.user.facultyId) || [];
+                        const hasPending = outReqs.some(r => Number(r.period) === pNum && r.date === dateStr && r.status === 'pending');
+                        if (hasPending) {
+                            reallocBtnHtml = `<span style="font-size:0.75rem; color:#f57c00; font-weight:600; padding:5px 8px; background:rgba(245,124,0,0.1); border-radius:6px; border:1px solid rgba(245,124,0,0.25); display:inline-flex; align-items:center; gap:4px;">⏳ Request Pending</span>`;
+                        }
+                    }
+
                     tr.innerHTML = `
                         <td style="padding: 1rem;"><strong>Period ${pNum}</strong></td>
                         <td style="padding: 1rem;">${timeStr}</td>
                         <td style="padding: 1rem;"><strong>${item.subjectCode}</strong><br><small style="color:var(--color-text-muted)">${item.subjectName}</small></td>
                         <td style="padding: 1rem;">${item.classLabel} ${badge}</td>
                         <td style="padding: 1rem;">
-                            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
                                 <button class="${markBtnClass} mark-btn">${markBtnText}</button>
-                                <button class="btn btn--sm btn--outline realloc-btn">${this.dateMode === 'today' ? 'Reallocate' : 'Advance Reallocate'}</button>
+                                ${reallocBtnHtml}
                             </div>
                         </td>
                     `;
@@ -1288,10 +1314,13 @@
                         }
                     });
 
-                    tr.querySelector('.realloc-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.openReallocationModal(item);
-                    });
+                    const reallocBtn = tr.querySelector('.realloc-btn');
+                    if (reallocBtn) {
+                        reallocBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.openReallocationModal(item);
+                        });
+                    }
 
                     tr.addEventListener('click', () => {
                         this.selectPeriod(pNum);
@@ -1721,28 +1750,58 @@
             const info = document.getElementById('reallocPeriodInfo');
             if(!modal || !select || !reason || !info) return;
 
-            info.textContent = `Period ${item.period.num || item.period} - ${item.classLabel} (${this.dateMode === 'today' ? 'Today' : 'Tomorrow'})`;
+            const pNum = Number(item.period.num || item.period);
+            const dateStr = this.currentDate.toISOString().split('T')[0];
+            info.textContent = `Period ${pNum} - ${item.classLabel} (${this.dateMode === 'today' ? 'Today' : 'Tomorrow'})`;
             
-            const allFaculty = (window.Timetable && window.Timetable.getFacultyList) ? window.Timetable.getFacultyList() : (window.Timetable.FACULTY || []);
-            const deptFaculty = allFaculty.filter(f => 
-                (f.dept === this.user.department || (this.user.department === 'ALL_I' && ['MATH','PHY','ENG','ALL_I'].includes(f.dept))) && 
+            const allFaculty = (window.Timetable && typeof window.Timetable.getFacultyList === 'function') 
+                ? window.Timetable.getFacultyList() 
+                : (window.Timetable.FACULTY || []);
+
+            // All colleagues except the currently logged in faculty member
+            const otherFaculty = allFaculty.filter(f => 
                 f.id !== this.user.facultyId && f.username !== this.user.username
             );
-            
-            const dateStr = this.currentDate.toISOString().split('T')[0];
-            const pNum = Number(item.period.num || item.period);
 
-            select.innerHTML = '<option value="">-- Select Available Faculty --</option>' + 
-                deptFaculty.map(f => {
-                    const sched = window.Timetable.getFacultySchedule ? window.Timetable.getFacultySchedule(f.id, dateStr) : [];
-                    const isBusy = sched.some(s => Number(s.period.num || s.period) === pNum);
-                    if (isBusy) {
-                        return `<option value="${f.id}" disabled style="color:#999;">${f.name} (Busy in Period ${pNum})</option>`;
-                    } else {
-                        return `<option value="${f.id}">${f.name} (Available)</option>`;
-                    }
-                }).join('');
-                
+            // Determine true availability (only busy if teaching a non-free subject in this period)
+            const analyzed = otherFaculty.map(f => {
+                const sched = (window.Timetable && typeof window.Timetable.getFacultySchedule === 'function') 
+                    ? window.Timetable.getFacultySchedule(f.id, dateStr) 
+                    : [];
+                const isBusy = sched.some(s => Number(s.period.num || s.period) === pNum && s.type !== 'free' && s.subjectCode !== 'FREE');
+                const isSameDept = f.dept === this.user.department || (this.user.department === 'ALL_I' && ['MATH','PHY','ENG'].includes(f.dept));
+                return { faculty: f, isBusy, isSameDept };
+            });
+
+            // Sort: free same-dept -> free other-dept -> busy same-dept -> busy other-dept
+            analyzed.sort((a, b) => {
+                if (a.isBusy !== b.isBusy) return a.isBusy ? 1 : -1;
+                if (a.isSameDept !== b.isSameDept) return a.isSameDept ? -1 : 1;
+                return a.faculty.name.localeCompare(b.faculty.name);
+            });
+
+            const freeList = analyzed.filter(x => !x.isBusy);
+            const busyList = analyzed.filter(x => x.isBusy);
+
+            let optionsHtml = '<option value="">-- Select Faculty for Reallocation --</option>';
+
+            if (freeList.length > 0) {
+                optionsHtml += `<optgroup label="Available Faculty (Free in Period ${pNum})">`;
+                freeList.forEach(x => {
+                    optionsHtml += `<option value="${x.faculty.id}">🟢 ${x.faculty.name} [${x.faculty.dept}] — Available</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            }
+
+            if (busyList.length > 0) {
+                optionsHtml += `<optgroup label="Other Faculty (Available for Mutual Swap / Substitution)">`;
+                busyList.forEach(x => {
+                    optionsHtml += `<option value="${x.faculty.id}">🟡 ${x.faculty.name} [${x.faculty.dept}] — Available (Class Swap)</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            }
+
+            select.innerHTML = optionsHtml;
             reason.value = '';
             modal.classList.add('open');
 
@@ -1754,11 +1813,10 @@
             
             sendBtn.onclick = () => {
                 if(!select.value) return alert('Please select a faculty member');
-                const pNum = item.period.num || item.period;
-                const dateStr = this.currentDate.toISOString().split('T')[0];
-                window.Reallocation.createRequest(this.user.facultyId, select.value, dateStr, pNum, item.classGroup, reason.value);
-                this.showToast('Reallocation request sent');
+                window.Reallocation.createRequest(this.user.facultyId, select.value, dateStr, pNum, item.classGroup, reason.value || 'Period substitution');
+                this.showToast('Reallocation request sent successfully!');
                 closeModal();
+                this.loadSchedule();
             };
         }
     };

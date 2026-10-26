@@ -294,6 +294,18 @@
   /**
    * Gets the current period number based on time.
    */
+  
+  /**
+   * Gets schedule for a classGroup key (e.g., 'CSE-II-A').
+   */
+  function getClassSchedule(classGroup, dateStr) {
+    if (!classGroup) return [];
+    const normalized = classGroup.trim().replace(/\s+/g, '-');
+    const parts = normalized.split('-');
+    if (parts.length < 3) return [];
+    return getTodayTimetable(parts[0], parts[1], parts[2], dateStr);
+  }
+
   function getCurrentPeriod() {
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -421,6 +433,7 @@
     getTimetableKey,
     getAllClassGroups,
     getDayName,
+    getClassSchedule,
     getTodayTimetable,
     getCurrentPeriod,
     getSubjectsByFaculty,

@@ -1513,6 +1513,14 @@ th:hover .sort-indicator {
   color: var(--color-text);
 }
 
+.footer-credits {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+  font-weight: 400;
+  opacity: 0.88;
+}
+
 /* ---- SESSION NOTICE / COOKIE BANNER ---- */
 .session-notice-banner {
   position: fixed;
